@@ -1,27 +1,29 @@
+import {HousingNumber} from "./number";
+
 export interface IInvestment {
   principle: number;
-  monthlyInvestment: number;
-  growthRatePerYear: number;
+  contribution: HousingNumber;
+  growthRate: HousingNumber;
 }
 
 export interface IHousing {
   plan: "house" | "rental";
-  monthlyPayment: number;
+  payment: HousingNumber;
   downPayment: number;
-  chargeForRoom: number;
-  chargeForRoomIncrease: number;
+  chargeForRoom: HousingNumber;
+  chargeForRoomIncrease: HousingNumber;
   extraBedrooms: number;
-  utilityCost: number;
+  utilityCost: HousingNumber;
 }
 
 export interface IHouse extends IHousing {
-  annualRepairs: number;
+  repairCost: HousingNumber;
   housePrice: number;
-  growthRatePerYear: number;
+  growthRate: HousingNumber;
 }
 
 export interface IRental extends IHousing {
-  yearlyPaymentIncrease: number;
+  paymentIncrease: HousingNumber;
 }
 
 function assert(condition: boolean, message?: string) {
@@ -43,15 +45,16 @@ function expect(condition: boolean, message?: string) {
 
    exponentialSum computes the total amount of money you spent over a specified amount of 'years'
 */
-export function exponentialSum(base: number, rate: number, years: number): number {
-  expect(rate >= 0 && rate <= 1, "rate is not between 0 and 1");
+export function exponentialSum(base: number, rate: HousingNumber, years: number): number {
+  const ratePerYear = rate.yearly();
+  expect(ratePerYear >= 0 && ratePerYear <= 1, "rate is not between 0 and 1");
   assert(base >= 0, "base is negative");
   assert(years >= 0, "years is negative");
 
   let total = base;
   let curr = base;
   for (let year = 1; year < years; year++) {
-    curr += curr * rate;
+    curr += curr * ratePerYear;
     total += curr;
   }
   return total;
@@ -66,14 +69,16 @@ export function exponentialSum(base: number, rate: number, years: number): numbe
  * @param rate 
  * @param months 
  */
-export function reccuringInvestment(base: number, invest: number, rate: number, months: number): number {
-  expect(rate >= 0 && rate <= 1, "rate is not between 0 and 1");
-  assert(invest >= 0, "invest is negative");
+export function reccuringInvestment(base: number, invest: HousingNumber, rate: HousingNumber, months: number): number {
+  const investPerMonth = invest.monthly();
+  const ratePerMonth = rate.monthly();
+  expect(ratePerMonth >= 0 && ratePerMonth <= 1, "rate is not between 0 and 1");
+  assert(investPerMonth >= 0, "invest is negative");
   assert(base >= 0, "base is negative");
   assert(months >= 0, "months is negative");
   function* invests() {
     for (let month = 0; month < months; month++) {
-      yield invest;
+      yield investPerMonth;
     }
   };
 
@@ -86,13 +91,14 @@ export function reccuringInvestment(base: number, invest: number, rate: number, 
  * @param invests 
  * @param rate 
  */
-export function reccuringInvestmentWithGenerator(base: number, invests: Generator<number>, rate: number): number {
-  expect(rate >= 0 && rate <= 1, "rate is not between 0 and 1");
+export function reccuringInvestmentWithGenerator(base: number, invests: Generator<number>, rate: HousingNumber): number {
+  let ratePerMonth = rate.monthly();
+  expect(ratePerMonth >= 0 && ratePerMonth <= 1, "rate is not between 0 and 1");
   assert(base >= 0, "base is negative");
   let curr = base;
-  rate += 1;
+  ratePerMonth += 1;
   for (const invest of invests) {
-    curr = curr * rate + invest;
+    curr = curr * ratePerMonth + invest;
   }
   return curr;
 };
@@ -116,23 +122,23 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
 
   const withoutHousing = reccuringInvestment(
     investment.principle,
-    investment.monthlyInvestment,
-    investment.growthRatePerYear / 12,
+    investment.contribution,
+    investment.growthRate,
     years * 12);
 
   function* invests() {
     const months = years * 12;
-    let rentIncome = house.chargeForRoom * house.extraBedrooms;
+    let rentIncome = house.chargeForRoom.monthly() * house.extraBedrooms;
     for (let month = 1; month <= months; month++) {
       yield (
-        investment.monthlyInvestment
-        - house.utilityCost
-        - house.monthlyPayment
+        investment.contribution.monthly()
+        - house.utilityCost.monthly()
+        - house.payment.monthly()
         + rentIncome
       );
 
       if (month % 12 == 0) {
-        rentIncome *= (1 + house.chargeForRoomIncrease);
+        rentIncome *= (1 + house.chargeForRoomIncrease.yearly());
       }
     }
   }
@@ -140,7 +146,7 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
   const withHousing = reccuringInvestmentWithGenerator(
     investment.principle - house.downPayment,
     invests(),
-    investment.growthRatePerYear / 12
+    investment.growthRate
   )
 
   // const withHousing = reccuringInvestment(
@@ -157,27 +163,27 @@ function investmentLossRental(house: IRental, investment: IInvestment, years: nu
 
   const withoutHousing = reccuringInvestment(
     investment.principle,
-    investment.monthlyInvestment,
-    investment.growthRatePerYear / 12,
+    investment.contribution,
+    investment.growthRate,
     years * 12);
 
   function* invests() {
     const months = years * 12;
-    let monthlyPayment = house.monthlyPayment;
+    let monthlyPayment = house.payment.monthly();
     for (let month = 1; month <= months; month++) {
-      yield (investment.monthlyInvestment - house.utilityCost - monthlyPayment);
+      yield (investment.contribution.monthly() - house.utilityCost.monthly() - monthlyPayment);
       if (month % 12 == 0) {
-        monthlyPayment *= (1 + house.yearlyPaymentIncrease);
+        monthlyPayment *= (1 + house.paymentIncrease.yearly());
       }
     }
   }
   const withHousing = reccuringInvestmentWithGenerator(
     investment.principle - house.downPayment,
     invests(),
-    investment.growthRatePerYear / 12);
+    investment.growthRate);
   return withoutHousing - withHousing;
 }
 
 export function houseAppreciation(house: IHouse, years: number) {
-  return house.housePrice * Math.pow(1 + house.growthRatePerYear, years)
+  return house.housePrice * Math.pow(1 + house.growthRate.yearly(), years)
 }
