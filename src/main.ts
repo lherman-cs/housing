@@ -119,11 +119,35 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
     investment.monthlyInvestment,
     investment.growthRatePerYear / 12,
     years * 12);
-  const withHousing = reccuringInvestment(
+
+  function* invests() {
+    const months = years * 12;
+    let rentIncome = house.chargeForRoom * house.extraBedrooms;
+    for (let month = 1; month <= months; month++) {
+      yield (
+        investment.monthlyInvestment
+        - house.utilityCost
+        - house.monthlyPayment
+        + rentIncome
+      );
+
+      if (month % 12 == 0) {
+        rentIncome *= (1 + house.chargeForRoomIncrease);
+      }
+    }
+  }
+
+  const withHousing = reccuringInvestmentWithGenerator(
     investment.principle - house.downPayment,
-    investment.monthlyInvestment - house.utilityCost - house.monthlyPayment,
-    investment.growthRatePerYear / 12,
-    years * 12);
+    invests(),
+    investment.growthRatePerYear / 12
+  )
+
+  // const withHousing = reccuringInvestment(
+  //   investment.principle - house.downPayment,
+  //   investment.monthlyInvestment - house.utilityCost - house.monthlyPayment,
+  //   investment.growthRatePerYear / 12,
+  //   years * 12);
   return withoutHousing - withHousing;
 }
 
@@ -152,4 +176,8 @@ function investmentLossRental(house: IRental, investment: IInvestment, years: nu
     invests(),
     investment.growthRatePerYear / 12);
   return withoutHousing - withHousing;
+}
+
+export function houseAppreciation(house: IHouse, years: number) {
+  return house.housePrice * Math.pow(1 + house.growthRatePerYear, years)
 }

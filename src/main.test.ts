@@ -5,7 +5,8 @@ import {
   exponentialSum,
   reccuringInvestment,
   reccuringInvestmentWithGenerator,
-  IHouse
+  IHouse,
+  houseAppreciation
 } from "./main";
 import { expect } from 'chai';
 
@@ -127,4 +128,77 @@ describe('investmentLoss', function () {
     );
     expect(loss).equal(expectedWithoutHousing - expectedWithHousing);
   });
+
+  it('House with rental Good', function () {
+    const house: IHouse = {
+      plan: "house",
+      utilityCost: 105,
+      monthlyPayment: 800,
+      downPayment: 0,
+      chargeForRoom: 300,
+      chargeForRoomIncrease: .02,
+      extraBedrooms: 2,
+      annualRepairs: 500,
+      housePrice: 300000,
+      growthRatePerYear: .05
+    };
+
+    const investment: IInvestment = {
+      principle: 124383,
+      monthlyInvestment: 14294,
+      growthRatePerYear: 0.07
+    };
+
+    const loss = investmentLoss(house, investment, 2);
+    const expectedWithoutHousing = reccuringInvestment(
+      investment.principle,
+      investment.monthlyInvestment,
+      investment.growthRatePerYear / 12,
+      24
+    );
+
+    const rentIncome = house.chargeForRoom * house.extraBedrooms;
+    const monthlyInvestment = investment.monthlyInvestment
+      - house.monthlyPayment
+      - house.utilityCost
+      + rentIncome;
+    const expectedWithHousingFirstYear = reccuringInvestment(
+      investment.principle - house.downPayment,
+      monthlyInvestment,
+      investment.growthRatePerYear / 12,
+      12
+    );
+    const expectedWithHousingSecondYear = reccuringInvestment(
+      expectedWithHousingFirstYear,
+      monthlyInvestment + rentIncome * house.chargeForRoomIncrease,
+      investment.growthRatePerYear / 12,
+      12
+    );
+
+    expect(loss).equal(expectedWithoutHousing - expectedWithHousingSecondYear);
+  });
+});
+
+describe('houseAppreciation', function () {
+  it('Happy Path', function () {
+    const house: IHouse = {
+      plan: "house",
+      utilityCost: 105,
+      monthlyPayment: 800,
+      downPayment: 0,
+      chargeForRoom: 0,
+      chargeForRoomIncrease: 0,
+      extraBedrooms: 0,
+      annualRepairs: 500,
+      housePrice: 300000,
+      growthRatePerYear: .05
+    };
+
+    const rate = 1 + house.growthRatePerYear;
+    expect(houseAppreciation(house, 0)).equal(house.housePrice);
+    expect(houseAppreciation(house, 1)).equal(house.housePrice * rate);
+    expect(houseAppreciation(house, 2)).equal(house.housePrice * Math.pow(rate, 2));
+    expect(houseAppreciation(house, 5)).equal(house.housePrice * Math.pow(rate, 5));
+    expect(houseAppreciation(house, 50)).equal(house.housePrice * Math.pow(rate, 50));
+  })
 });
