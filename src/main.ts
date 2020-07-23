@@ -134,6 +134,7 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
         investment.contribution.monthly()
         - house.utilityCost.monthly()
         - house.payment.monthly()
+        - house.repairCost.monthly()
         - house.hoaFee.monthly()
         + rentIncome
       );

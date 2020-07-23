@@ -128,7 +128,8 @@ describe('investmentLoss', function () {
         investment.contribution.monthly()
         - house.payment.monthly()
         - house.utilityCost.monthly()
-        - house.hoaFee.monthly(),
+        - house.hoaFee.monthly()
+        - house.repairCost.monthly(),
         "monthly"
       ),
       investment.growthRate,
@@ -171,6 +172,7 @@ describe('investmentLoss', function () {
       - house.payment.monthly()
       - house.utilityCost.monthly()
       - house.hoaFee.monthly()
+      - house.repairCost.monthly()
       + rentIncome;
     const expectedWithHousingFirstYear = reccuringInvestment(
       investment.principle - house.downPayment,
