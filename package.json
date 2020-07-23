@@ -2,15 +2,38 @@
   "name": "housing",
   "version": "1.0.0",
   "description": "Computes purely financial objectives of various housing options",
-  "main": "index.js",
-  "engines" : { "node" : ">=0.12" },
-  "engineStrict" : true,
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.1"
+  },
   "scripts": {
-    "test": "mocha -r ts-node/register src/**/*.test.ts",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "mocha-test": "mocha -r ts-node/register src/**/*.test.ts",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test"
   },
-  "author": "",
-  "license": "ISC",
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
   "devDependencies": {
     "@types/chai": "^4.2.11",
     "@types/mocha": "^8.0.0",
