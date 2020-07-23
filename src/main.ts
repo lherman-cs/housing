@@ -1,4 +1,4 @@
-import {HousingNumber} from "./number";
+import { HousingNumber } from "./number";
 
 export interface IInvestment {
   principle: number;
@@ -20,6 +20,7 @@ export interface IHouse extends IHousing {
   repairCost: HousingNumber;
   housePrice: number;
   growthRate: HousingNumber;
+  hoaFee: HousingNumber;
 }
 
 export interface IRental extends IHousing {
@@ -116,7 +117,6 @@ export function investmentLoss(housing: IHousing, investment: IInvestment, years
   }
 }
 
-// Depends on down payment & mo payment
 function investmentLossHouse(house: IHouse, investment: IInvestment, years: number) {
   assert(years >= 0, "years is negative");
 
@@ -134,6 +134,7 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
         investment.contribution.monthly()
         - house.utilityCost.monthly()
         - house.payment.monthly()
+        - house.hoaFee.monthly()
         + rentIncome
       );
 
@@ -157,7 +158,6 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
   return withoutHousing - withHousing;
 }
 
-// Depends on down payment & mo payment & monthlyPaymentIncrease
 function investmentLossRental(house: IRental, investment: IInvestment, years: number) {
   assert(years >= 0, "years is negative");
 

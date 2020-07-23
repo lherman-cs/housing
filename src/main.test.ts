@@ -8,8 +8,8 @@ import {
   IHouse,
   houseAppreciation
 } from "./main";
-import {HousingNumber} from "./number";
-import {expect} from 'chai';
+import { HousingNumber } from "./number";
+import { expect } from 'chai';
 
 
 describe('exponentialSum', function () {
@@ -105,7 +105,8 @@ describe('investmentLoss', function () {
       extraBedrooms: 0,
       repairCost: new HousingNumber(500, "yearly"),
       housePrice: 300000,
-      growthRate: new HousingNumber(.05, "yearly")
+      growthRate: new HousingNumber(.05, "yearly"),
+      hoaFee: new HousingNumber(255, "monthly")
     };
 
     const investment: IInvestment = {
@@ -123,7 +124,13 @@ describe('investmentLoss', function () {
     );
     const expectedWithHousing = reccuringInvestment(
       investment.principle - house.downPayment,
-      new HousingNumber(investment.contribution.monthly() - house.payment.monthly() - house.utilityCost.monthly(), "monthly"),
+      new HousingNumber(
+        investment.contribution.monthly()
+        - house.payment.monthly()
+        - house.utilityCost.monthly()
+        - house.hoaFee.monthly(),
+        "monthly"
+      ),
       investment.growthRate,
       24
     );
@@ -142,6 +149,7 @@ describe('investmentLoss', function () {
       repairCost: new HousingNumber(500, "yearly"),
       housePrice: 300000,
       growthRate: new HousingNumber(.05, "yearly"),
+      hoaFee: new HousingNumber(255, "monthly")
     };
 
     const investment: IInvestment = {
@@ -162,6 +170,7 @@ describe('investmentLoss', function () {
     const monthlyInvestment = investment.contribution.monthly()
       - house.payment.monthly()
       - house.utilityCost.monthly()
+      - house.hoaFee.monthly()
       + rentIncome;
     const expectedWithHousingFirstYear = reccuringInvestment(
       investment.principle - house.downPayment,
@@ -192,7 +201,8 @@ describe('houseAppreciation', function () {
       extraBedrooms: 0,
       repairCost: new HousingNumber(500, "yearly"),
       housePrice: 300000,
-      growthRate: new HousingNumber(.05, "yearly")
+      growthRate: new HousingNumber(.05, "yearly"),
+      hoaFee: new HousingNumber(255, "monthly")
     };
 
     const rate = 1 + house.growthRate.yearly();

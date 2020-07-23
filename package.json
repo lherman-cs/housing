@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Computes purely financial objectives of various housing options",
   "main": "index.js",
+  "engines" : { "node" : ">=0.12" },
+  "engineStrict" : true,
   "scripts": {
     "test": "mocha -r ts-node/register src/**/*.test.ts",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test"
