@@ -15,9 +15,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "mocha-test": "mocha -r ts-node/register src/**/*.test.ts",
-    "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -35,11 +33,7 @@
     ]
   },
   "devDependencies": {
-    "@types/chai": "^4.2.11",
-    "@types/mocha": "^8.0.0",
-    "chai": "^4.2.0",
-    "mocha": "^8.0.1",
-    "nyc": "^15.1.0",
+    "@types/jest": "^26.0.5",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.7"
   }

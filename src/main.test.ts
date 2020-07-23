@@ -9,29 +9,28 @@ import {
   houseAppreciation
 } from "./main";
 import { HousingNumber } from "./number";
-import { expect } from 'chai';
 
 
 describe('exponentialSum', function () {
   it('Happy Path', function () {
-    expect(exponentialSum(100, new HousingNumber(.00, "yearly"), 1)).equal(100);
-    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 1)).equal(100);
-    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 2)).equal(100 + 100 * 1.05);
-    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 3)).equal(100 + 100 * 1.05 + 100 * 1.05 * 1.05);
+    expect(exponentialSum(100, new HousingNumber(.00, "yearly"), 1)).toEqual(100);
+    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 1)).toEqual(100);
+    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 2)).toEqual(100 + 100 * 1.05);
+    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 3)).toEqual(100 + 100 * 1.05 + 100 * 1.05 * 1.05);
   })
 });
 
 describe('reccuringInvestment', function () {
   it('Happy Path', function () {
-    expect(reccuringInvestment(124383, new HousingNumber(13189, "monthly"), new HousingNumber(0.07, "yearly"), 12)).closeTo(296820, 0.5);
-    expect(reccuringInvestment(124383, new HousingNumber(13189, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 5)).closeTo(1120567, 0.5);
-    expect(reccuringInvestment(124383, new HousingNumber(13189, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 10)).closeTo(2532783, 0.5);
-    expect(reccuringInvestment(124383, new HousingNumber(0, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 10)).closeTo(249968, 0.5);
-    expect(reccuringInvestment(100, new HousingNumber(13189, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 10)).closeTo(2283016, 0.5);
-    expect(reccuringInvestment(124383, new HousingNumber(13189, "monthly"), new HousingNumber(0, "yearly"), 12)).closeTo(124383 + 13189 * 12, 0.5);
+    expect(reccuringInvestment(124383, new HousingNumber(13189, "monthly"), new HousingNumber(0.07, "yearly"), 12)).toBeCloseTo(296820, 0);
+    expect(reccuringInvestment(124383, new HousingNumber(13189, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 5)).toBeCloseTo(1120567, 0);
+    expect(reccuringInvestment(124383, new HousingNumber(13189, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 10)).toBeCloseTo(2532783, 0);
+    expect(reccuringInvestment(124383, new HousingNumber(0, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 10)).toBeCloseTo(249968, 0);
+    expect(reccuringInvestment(100, new HousingNumber(13189, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 10)).toBeCloseTo(2283016, 0);
+    expect(reccuringInvestment(124383, new HousingNumber(13189, "monthly"), new HousingNumber(0, "yearly"), 12)).toBeCloseTo(124383 + 13189 * 12, 0);
     // according to https://www.investor.gov/financial-tools-calculators/calculators/compound-interest-calculator
-    expect(reccuringInvestment(0, new HousingNumber(14294, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 10)).closeTo(2474074.24, 0.5);
-    expect(reccuringInvestment(124383, new HousingNumber(14294, "monthly"), new HousingNumber(.07, "yearly"), 24)).closeTo(510100.99, 0.5);
+    expect(reccuringInvestment(0, new HousingNumber(14294, "monthly"), new HousingNumber(0.07, "yearly"), 12 * 10)).toBeCloseTo(2474074.24, 0);
+    expect(reccuringInvestment(124383, new HousingNumber(14294, "monthly"), new HousingNumber(.07, "yearly"), 24)).toBeCloseTo(510100.99, 0);
   })
 });
 
@@ -40,7 +39,7 @@ describe('recurringInvestmentWithGenerator', function () {
     let invest = function* () {
       yield 90
     };
-    expect(reccuringInvestmentWithGenerator(9000, invest(), new HousingNumber(.07, "yearly"))).equal(9000 * (1 + .07 / 12) + 90);
+    expect(reccuringInvestmentWithGenerator(9000, invest(), new HousingNumber(.07, "yearly"))).toEqual(9000 * (1 + .07 / 12) + 90);
     invest = function* () {
       yield 100;
       yield 105;
@@ -48,7 +47,7 @@ describe('recurringInvestmentWithGenerator', function () {
       yield 5000;
       yield 0;
     }
-    expect(reccuringInvestmentWithGenerator(100, invest(), new HousingNumber(.07, "yearly"))).closeTo(5437.43, .005);
+    expect(reccuringInvestmentWithGenerator(100, invest(), new HousingNumber(.07, "yearly"))).toBeCloseTo(5437.43, 2);
   })
 })
 
@@ -91,7 +90,7 @@ describe('investmentLoss', function () {
       invest(rental, investment),
       investment.growthRate
     );
-    expect(loss).equal(expectedWithoutHousing - expectedWithHousing);
+    expect(loss).toEqual(expectedWithoutHousing - expectedWithHousing);
   });
 
   it('House Good', function () {
@@ -135,7 +134,7 @@ describe('investmentLoss', function () {
       investment.growthRate,
       24
     );
-    expect(loss).equal(expectedWithoutHousing - expectedWithHousing);
+    expect(loss).toEqual(expectedWithoutHousing - expectedWithHousing);
   });
 
   it('House with rental Good', function () {
@@ -187,7 +186,7 @@ describe('investmentLoss', function () {
       12
     );
 
-    expect(loss).equal(expectedWithoutHousing - expectedWithHousingSecondYear);
+    expect(loss).toEqual(expectedWithoutHousing - expectedWithHousingSecondYear);
   });
 });
 
@@ -208,10 +207,10 @@ describe('houseAppreciation', function () {
     };
 
     const rate = 1 + house.growthRate.yearly();
-    expect(houseAppreciation(house, 0)).equal(house.housePrice);
-    expect(houseAppreciation(house, 1)).equal(house.housePrice * rate);
-    expect(houseAppreciation(house, 2)).equal(house.housePrice * Math.pow(rate, 2));
-    expect(houseAppreciation(house, 5)).equal(house.housePrice * Math.pow(rate, 5));
-    expect(houseAppreciation(house, 50)).equal(house.housePrice * Math.pow(rate, 50));
+    expect(houseAppreciation(house, 0)).toEqual(house.housePrice);
+    expect(houseAppreciation(house, 1)).toEqual(house.housePrice * rate);
+    expect(houseAppreciation(house, 2)).toEqual(house.housePrice * Math.pow(rate, 2));
+    expect(houseAppreciation(house, 5)).toEqual(house.housePrice * Math.pow(rate, 5));
+    expect(houseAppreciation(house, 50)).toEqual(house.housePrice * Math.pow(rate, 50));
   })
 });
