@@ -1,5 +1,8 @@
 import { HousingNumber } from "./number";
 
+// export type Plan = 'house'|'rental'
+export enum Plan { 'house' = 'house','rental' = 'rental'}
+
 export interface IInvestment {
   principle: number;
   contribution: HousingNumber;
@@ -7,7 +10,7 @@ export interface IInvestment {
 }
 
 export interface IHousing {
-  plan: "house" | "rental";
+  plan: Plan;
   payment: HousingNumber;
   downPayment: number;
   chargeForRoom: HousingNumber;
@@ -139,7 +142,7 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
         + rentIncome
       );
 
-      if (month % 12 == 0) {
+      if (month % 12 === 0) {
         rentIncome *= (1 + house.chargeForRoomIncrease.yearly());
       }
     }
@@ -173,7 +176,7 @@ function investmentLossRental(house: IRental, investment: IInvestment, years: nu
     let monthlyPayment = house.payment.monthly();
     for (let month = 1; month <= months; month++) {
       yield (investment.contribution.monthly() - house.utilityCost.monthly() - monthlyPayment);
-      if (month % 12 == 0) {
+      if (month % 12 === 0) {
         monthlyPayment *= (1 + house.paymentIncrease.yearly());
       }
     }
