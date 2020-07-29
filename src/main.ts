@@ -151,13 +151,8 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
     investment.principle - house.downPayment,
     invests(),
     investment.growthRate
-  )
+  ) + houseAppreciation(house, years);
 
-  // const withHousing = reccuringInvestment(
-  //   investment.principle - house.downPayment,
-  //   investment.monthlyInvestment - house.utilityCost - house.monthlyPayment,
-  //   investment.growthRatePerYear / 12,
-  //   years * 12);
   return withoutHousing - withHousing;
 }
 

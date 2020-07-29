@@ -133,7 +133,7 @@ describe('investmentLoss', function () {
       ),
       investment.growthRate,
       24
-    );
+    ) + houseAppreciation(house, 2);
     expect(loss).toEqual(expectedWithoutHousing - expectedWithHousing);
   });
 
@@ -184,7 +184,7 @@ describe('investmentLoss', function () {
       new HousingNumber(monthlyInvestment + rentIncome * house.chargeForRoomIncrease.yearly(), "monthly"),
       investment.growthRate,
       12
-    );
+    ) + houseAppreciation(house, 2);
 
     expect(loss).toEqual(expectedWithoutHousing - expectedWithHousingSecondYear);
   });
