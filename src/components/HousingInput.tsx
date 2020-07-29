@@ -144,7 +144,7 @@ export function HouseInput({value, onChange} : HouseInputProps) {
           label="Repair Cost"
           id="standard-number"
           type="number"
-          value={value.repairCost.monthly()}
+          value={value.repairCost.yearly()}
           onChange={transformers.HousingNumber('repairCost', 'yearly')}
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,

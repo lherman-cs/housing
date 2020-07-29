@@ -51,8 +51,6 @@ function App() {
   };
 
   let HousingInput;
-  console.log({housingType});
-  debugger;
   switch (housingType) {
     case "house":
       HousingInput = <HouseInput value={house} onChange={setHouse}/>
