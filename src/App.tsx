@@ -39,11 +39,11 @@ const DEFAULT_INVESTMENT: IInvestment = {
 const DEFAULT_PROJECTED_YEARS = 10;
 
 function App() {
-  const [housingType, setHousingType] = React.useState('house');
+  const [housingType, setHousingType] = React.useState<Plan>('house');
   const [house, setHouse] = React.useState<IHouse>(DEFAULT_HOUSE);
   const [rental, setRental] = React.useState<IRental>(DEFAULT_RENTAL);
   const [investment, setInvestment] = React.useState<IInvestment>(DEFAULT_INVESTMENT);
-  const [years, setYears] = React.useState(DEFAULT_PROJECTED_YEARS);
+  const [years, setYears] = React.useState<number>(DEFAULT_PROJECTED_YEARS);
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const value = event.target.value as Plan;
@@ -51,6 +51,8 @@ function App() {
   };
 
   let HousingInput;
+  console.log({housingType});
+  debugger;
   switch (housingType) {
     case "house":
       HousingInput = <HouseInput value={house} onChange={setHouse}/>
