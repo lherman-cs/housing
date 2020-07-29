@@ -1,5 +1,7 @@
+export type Period = 'monthly' | 'yearly'
+
 export class HousingNumber {
-  constructor(private amount: number, private period: "monthly" | "yearly") {}
+  constructor(private amount: number, private period: Period) {}
 
   monthly(): number {
     let amount = this.amount;

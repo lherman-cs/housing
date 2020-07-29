@@ -1,7 +1,6 @@
 import { HousingNumber } from "./number";
 
-// export type Plan = 'house'|'rental'
-export enum Plan { 'house' = 'house','rental' = 'rental'}
+export type Plan = 'house' | 'rental'
 
 export interface IInvestment {
   principle: number;
