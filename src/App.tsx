@@ -24,6 +24,44 @@ function App() {
     setOpen(false);
   };
 
+  function downloadCSV() {
+    const csvRows = [];
+    for (const row of rows) {
+      const isHouse = row.housingType === 'house';
+      const housing: IHousing = isHouse ? row.house : row.rental;
+
+      csvRows.push([
+        row.housingType,
+
+        housing.payment.monthly(),
+        housing.downPayment,
+        housing.extraBedrooms,
+        housing.chargeForRoom.monthly(),
+        housing.chargeForRoomIncrease.yearly(),
+        housing.utilityCost.monthly(),
+
+        isHouse ? row.house.repairCost.yearly() : 'N/A',
+        isHouse ? row.house.housePrice : 'N/A',
+        isHouse ? row.house.growthRate.yearly() : 'N/A',
+        isHouse ? row.house.hoaFee.yearly() : 'N/A',
+
+        !isHouse ? row.rental.paymentIncrease.yearly() : 'N/A',
+
+        row.investment.principle,
+        row.investment.contribution.monthly(),
+        row.investment.growthRate.yearly(),
+
+        row.investmentLoss,
+      ]);
+    }
+
+    const csvContent = "data:text/csv;charset=utf-8,"
+      + csvRows.map(e => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    window.open(encodedUri);
+  }
+
   return (
     <div>
       <TableContainer component={Paper}>
@@ -90,6 +128,7 @@ function App() {
       </TableContainer>
       <InputDialog open={open} onClose={() => setOpen(false)} onSubmit={handleSubmit} />
       <Button onClick={() => setOpen(true)}>Add</Button>
+      <Button onClick={downloadCSV}>Download as CSV</Button>
     </div>
   );
 }
