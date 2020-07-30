@@ -156,6 +156,7 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
   return withoutHousing - withHousing;
 }
 
+// TODO: Find bug!!!
 function investmentLossRental(house: IRental, investment: IInvestment, years: number) {
   assert(years >= 0, "years is negative");
 
