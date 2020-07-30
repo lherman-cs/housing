@@ -70,7 +70,8 @@ function App() {
             <TableRow>
               <TableCell rowSpan={2}>Housing Type</TableCell>
               <TableCell colSpan={6} align="center">Housing</TableCell>
-              <TableCell colSpan={4} align="center">Apartment</TableCell>
+              <TableCell colSpan={4} align="center">House</TableCell>
+              <TableCell colSpan={1} align="center">Apartment</TableCell>
               <TableCell colSpan={3} align="center">Investment</TableCell>
               <TableCell rowSpan={2}>Investment Loss</TableCell>
             </TableRow>
