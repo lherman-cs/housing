@@ -10,7 +10,8 @@ import {
   TableRow
 } from '@material-ui/core';
 import {InputDialog, InputDialogData} from './components/InputDialog';
-import {IHousing} from './main';
+import {IHousing, Plan, IHouse, IRental, IInvestment} from './main';
+import {HousingNumber} from './number';
 
 function App() {
   const [open, setOpen] = React.useState(false);
@@ -24,6 +25,61 @@ function App() {
     setOpen(false);
   };
 
+  async function loadCSV(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files) {
+      return;
+    }
+
+    const file = files[0];
+    const content = await file.text();
+    const csvRows = content.split('\n').map(row => row.split(','));
+
+    const newRows: InputDialogData[] = [];
+    for (const csvCols of csvRows) {
+      const plan = csvCols[0] as Plan;
+      const years = Number(csvCols[1]);
+      const isHouse = plan === 'house';
+      const house = {} as IHouse;
+      const rental = {} as IRental;
+      const housing = isHouse ? house : rental;
+
+      housing.payment = new HousingNumber(Number(csvCols[2]), "monthly");
+      housing.downPayment = Number(csvCols[3]);
+      housing.extraBedrooms = Number(csvCols[4]);
+      housing.chargeForRoom = new HousingNumber(Number(csvCols[5]), "monthly");
+      housing.chargeForRoomIncrease = new HousingNumber(Number(csvCols[6]), "yearly");
+      housing.utilityCost = new HousingNumber(Number(csvCols[7]), "monthly");
+
+      house.repairCost = new HousingNumber(Number(csvCols[8]), "yearly");
+      house.housePrice = Number(csvCols[9]);
+      house.growthRate = new HousingNumber(Number(csvCols[10]), "yearly");
+      house.hoaFee = new HousingNumber(Number(csvCols[11]), "yearly");
+
+      rental.paymentIncrease = new HousingNumber(Number(csvCols[12]), "yearly");
+
+      const investment: IInvestment = {
+        principle: Number(csvCols[13]),
+        contribution: new HousingNumber(Number(csvCols[14]), "monthly"),
+        growthRate: new HousingNumber(Number(csvCols[15]), "yearly"),
+      };
+
+      console.log(csvCols);
+      const investmentLoss = Number(csvCols[16]);
+
+      newRows.push({
+        housingType: plan,
+        years,
+        house,
+        rental,
+        investment,
+        investmentLoss
+      });
+    }
+
+    setRows(newRows);
+  }
+
   function downloadCSV() {
     const csvRows = [];
     for (const row of rows) {
@@ -32,6 +88,7 @@ function App() {
 
       csvRows.push([
         row.housingType,
+        row.years,
 
         housing.payment.monthly(),
         housing.downPayment,
@@ -40,12 +97,12 @@ function App() {
         housing.chargeForRoomIncrease.yearly(),
         housing.utilityCost.monthly(),
 
-        isHouse ? row.house.repairCost.yearly() : 'N/A',
-        isHouse ? row.house.housePrice : 'N/A',
-        isHouse ? row.house.growthRate.yearly() : 'N/A',
-        isHouse ? row.house.hoaFee.yearly() : 'N/A',
+        isHouse ? row.house.repairCost.yearly() : 0,
+        isHouse ? row.house.housePrice : 0,
+        isHouse ? row.house.growthRate.yearly() : 0,
+        isHouse ? row.house.hoaFee.yearly() : 0,
 
-        !isHouse ? row.rental.paymentIncrease.yearly() : 'N/A',
+        !isHouse ? row.rental.paymentIncrease.yearly() : 0,
 
         row.investment.principle,
         row.investment.contribution.monthly(),
@@ -69,6 +126,7 @@ function App() {
           <TableHead>
             <TableRow>
               <TableCell rowSpan={2}>Housing Type</TableCell>
+              <TableCell rowSpan={2}>Projected Years</TableCell>
               <TableCell colSpan={6} align="center">Housing</TableCell>
               <TableCell colSpan={4} align="center">House</TableCell>
               <TableCell colSpan={1} align="center">Apartment</TableCell>
@@ -102,6 +160,7 @@ function App() {
 
               return (<TableRow>
                 <TableCell align="center">{row.housingType}</TableCell>
+                <TableCell align="center">{row.years}</TableCell>
 
                 <TableCell align="center">{housing.payment.monthly()}</TableCell>
                 <TableCell align="center">{housing.downPayment}</TableCell>
@@ -130,7 +189,18 @@ function App() {
       <InputDialog open={open} onClose={() => setOpen(false)} onSubmit={handleSubmit} />
       <Button onClick={() => setOpen(true)}>Add</Button>
       <Button onClick={downloadCSV}>Download as CSV</Button>
-    </div>
+      <input
+        accept="text/csv"
+        id="contained-button-file"
+        type="file"
+        onChange={loadCSV}
+      />
+      <label htmlFor="contained-button-file">
+        <Button variant="contained" color="primary" component="span">
+          Load CSV
+        </Button>
+      </label>
+    </div >
   );
 }
 
