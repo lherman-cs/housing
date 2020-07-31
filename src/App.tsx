@@ -186,7 +186,7 @@ function App() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row, i) => {
+            {rows.sort((a, b) => a.investmentLoss - b.investmentLoss).map((row, i) => {
               const isHouse = row.housingType === 'house';
               const housing: IHousing = isHouse ? row.house : row.rental;
 
