@@ -7,23 +7,39 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  IconButton,
 } from '@material-ui/core';
-import {InputDialog, InputDialogData} from './components/InputDialog';
+import { Edit } from "@material-ui/icons";
+import {InputDialog, InputDialogData, InputDialogDataInit} from './components/InputDialog';
 import {IHousing, Plan, IHouse, IRental, IInvestment, investmentLoss} from './main';
 import {HousingNumber} from './number';
 
 function App() {
   const [open, setOpen] = React.useState(false);
   const [rows, setRows] = React.useState<InputDialogData[]>([]);
+  const [index, setIndex] = React.useState(-1);
+  const [initialData, setInitialData] = React.useState<InputDialogDataInit|undefined>();
 
   const handleSubmit = (data: InputDialogData) => {
+    if (index < 0 || index >= rows.length) {
     setRows([
       ...rows,
       data
     ]);
+    } else {
+      rows[index] = data;
+      setRows([...rows]);
+    }
     setOpen(false);
   };
+
+  function handleEdit(i: number) {
+    debugger;
+    setIndex(i);
+    setInitialData(rows[i]);
+    setOpen(true);
+  }
 
   async function loadCSV(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -73,7 +89,6 @@ function App() {
         growthRate: new HousingNumber(Number(csvCols[15]), "yearly"),
       };
 
-      console.log(csvCols)
       newRows.push({
         housingType: plan,
         years,
@@ -137,6 +152,7 @@ function App() {
               <TableCell colSpan={1} align="center">Apartment</TableCell>
               <TableCell colSpan={3} align="center">Investment</TableCell>
               <TableCell rowSpan={2}>Investment Loss</TableCell>
+              <TableCell rowSpan={2}>Actions</TableCell>
             </TableRow>
             <TableRow>
               <TableCell align="center">Monthly Payment</TableCell>
@@ -159,7 +175,7 @@ function App() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map(row => {
+            {rows.map((row, i) => {
               const isHouse = row.housingType === 'house';
               const housing: IHousing = isHouse ? row.house : row.rental;
 
@@ -186,12 +202,15 @@ function App() {
                 <TableCell align="center">{row.investment.growthRate.yearly()}</TableCell>
 
                 <TableCell align="center">{row.investmentLoss}</TableCell>
+                <IconButton color="primary" aria-label="upload picture" component="span" onClick={() => handleEdit(i)}>
+                  <Edit/>
+                </IconButton>
               </TableRow>)
             })}
           </TableBody>
         </Table>
       </TableContainer>
-      <InputDialog open={open} onClose={() => setOpen(false)} onSubmit={handleSubmit} />
+      <InputDialog initialData={initialData} open={open} onClose={() => setOpen(false)} onSubmit={handleSubmit} />
       <Button onClick={() => setOpen(true)}>Add</Button>
       <Button onClick={downloadCSV}>Download as CSV</Button>
       <input

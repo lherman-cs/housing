@@ -87,6 +87,17 @@ export function InputDialog({initialData, onSubmit, onClose, open}: InputDialogP
   const [investment, setInvestment] = React.useState<IInvestment>(initialData.investment);
   const [years, setYears] = React.useState<number>(initialData.years);
 
+  React.useEffect(() => {
+    if (!initialData) {
+      return
+    }
+    setHousingType(initialData.housingType);
+    setHouse(initialData.house);
+    setRental(initialData.rental);
+    setInvestment(initialData.investment);
+    setYears(initialData.years);
+  }, [initialData]);
+
   const handleChange = (event: React.ChangeEvent<{value: unknown}>) => {
     const value = event.target.value as Plan;
     setHousingType(value);
