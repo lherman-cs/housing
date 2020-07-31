@@ -35,6 +35,11 @@ function App() {
     setOpen(false);
   };
 
+  function handleOpen() {
+    setIndex(-1);
+    setOpen(true);
+  }
+
   function handleRemove(i: number) {
     const left = rows.slice(0, i) || [];
     const right = rows.slice(i + 1) || [];
@@ -225,7 +230,7 @@ function App() {
         </Table>
       </TableContainer>
       <InputDialog initialData={initialData} open={open} onClose={() => setOpen(false)} onSubmit={handleSubmit} />
-      <Button onClick={() => setOpen(true)}>Add</Button>
+      <Button onClick={handleOpen}>Add</Button>
       <Button onClick={downloadCSV}>Download as CSV</Button>
       <input
         accept="text/csv"
