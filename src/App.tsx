@@ -9,8 +9,9 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  ButtonGroup,
 } from '@material-ui/core';
-import { Edit } from "@material-ui/icons";
+import { Edit, Delete } from "@material-ui/icons";
 import {InputDialog, InputDialogData, InputDialogDataInit} from './components/InputDialog';
 import {IHousing, Plan, IHouse, IRental, IInvestment, investmentLoss} from './main';
 import {HousingNumber} from './number';
@@ -34,8 +35,13 @@ function App() {
     setOpen(false);
   };
 
+  function handleRemove(i: number) {
+    const left = rows.slice(0, i) || [];
+    const right = rows.slice(i + 1) || [];
+    setRows([...left, ...right]);
+  }
+
   function handleEdit(i: number) {
-    debugger;
     setIndex(i);
     setInitialData(rows[i]);
     setOpen(true);
@@ -145,14 +151,14 @@ function App() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell rowSpan={2}>Housing Type</TableCell>
-              <TableCell rowSpan={2}>Projected Years</TableCell>
+              <TableCell rowSpan={2} align="center">Housing Type</TableCell>
+              <TableCell rowSpan={2} align="center">Projected Years</TableCell>
               <TableCell colSpan={6} align="center">Housing</TableCell>
               <TableCell colSpan={4} align="center">House</TableCell>
               <TableCell colSpan={1} align="center">Apartment</TableCell>
               <TableCell colSpan={3} align="center">Investment</TableCell>
-              <TableCell rowSpan={2}>Investment Loss</TableCell>
-              <TableCell rowSpan={2}>Actions</TableCell>
+              <TableCell rowSpan={2} align="center">Investment Loss</TableCell>
+              <TableCell rowSpan={2} align="center">Actions</TableCell>
             </TableRow>
             <TableRow>
               <TableCell align="center">Monthly Payment</TableCell>
@@ -202,9 +208,17 @@ function App() {
                 <TableCell align="center">{row.investment.growthRate.yearly()}</TableCell>
 
                 <TableCell align="center">{row.investmentLoss}</TableCell>
-                <IconButton color="primary" aria-label="upload picture" component="span" onClick={() => handleEdit(i)}>
-                  <Edit/>
-                </IconButton>
+                <TableCell align="center">
+                  <ButtonGroup variant="text" color="primary" aria-label="text primary button group">
+                    <IconButton color="primary" aria-label="upload picture" component="span" onClick={() => handleEdit(i)}>
+                      <Edit/>
+                    </IconButton>
+                    <IconButton color="primary" aria-label="upload picture" component="span" onClick={() => handleRemove(i)}>
+                      <Delete/>
+                    </IconButton>
+                  </ButtonGroup>
+
+                </TableCell>
               </TableRow>)
             })}
           </TableBody>
