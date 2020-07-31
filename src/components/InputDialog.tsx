@@ -34,7 +34,11 @@ const DEFAULT_HOUSE: IHouse = {
   repairCost: new HousingNumber(500, "yearly"),
   housePrice: 250000,
   growthRate: new HousingNumber(0.04, "yearly"),
-  hoaFee: new HousingNumber(250, "monthly")
+  hoaFee: new HousingNumber(250, "monthly"),
+  loan: {
+    interestRate: new HousingNumber(.03, "yearly"),
+    term: 30
+  }
 };
 
 const DEFAULT_RENTAL: IRental = {

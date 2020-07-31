@@ -7,6 +7,12 @@ export interface IInvestment {
   contribution: HousingNumber;
   growthRate: HousingNumber;
 }
+export type LoanTerm = 15 | 30
+
+export interface ILoan {
+  term: LoanTerm;
+  interestRate: HousingNumber;
+}
 
 export interface IHousing {
   plan: Plan;
@@ -23,6 +29,7 @@ export interface IHouse extends IHousing {
   housePrice: number;
   growthRate: HousingNumber;
   hoaFee: HousingNumber;
+  loan: ILoan;
 }
 
 export interface IRental extends IHousing {
@@ -186,3 +193,23 @@ function investmentLossRental(house: IRental, investment: IInvestment, years: nu
 export function houseAppreciation(house: IHouse, years: number) {
   return house.housePrice * Math.pow(1 + house.growthRate.yearly(), years)
 }
+
+export function loanPrinciple(house: IHouse, years: number){
+  let loanAmount = house.housePrice - house.downPayment;
+  const months = years * 12;
+  for (let month = 0; month < months; month ++){
+    const interest = loanAmount * house.loan.interestRate.monthly();
+    const principle = house.payment.monthly() - interest;
+    loanAmount -= principle;
+    if (loanAmount < 0) { loanAmount = 0; month = months;}
+  }
+  return loanAmount;
+}
+// With formula
+// export function loanPrinciple(house: IHouse, years: number){
+//   let loanAmount = house.housePrice - house.downPayment;
+//   const months = years * 12;
+//   const rate = house.loan.interestRate.monthly()
+//   const p = Math.pow(1 + rate, months);
+//   return loanAmount * p - house.payment.monthly() * (p - 1) / rate
+// }

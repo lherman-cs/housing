@@ -6,7 +6,8 @@ import {
   reccuringInvestment,
   reccuringInvestmentWithGenerator,
   IHouse,
-  houseAppreciation
+  houseAppreciation,
+  loanPrinciple
 } from "./main";
 import { HousingNumber } from "./number";
 
@@ -105,7 +106,11 @@ describe('investmentLoss', function () {
       repairCost: new HousingNumber(500, "yearly"),
       housePrice: 300000,
       growthRate: new HousingNumber(.05, "yearly"),
-      hoaFee: new HousingNumber(255, "monthly")
+      hoaFee: new HousingNumber(255, "monthly"),
+      loan: {
+        interestRate: new HousingNumber(.03, "yearly"),
+        term: 30
+      }
     };
 
     const investment: IInvestment = {
@@ -149,7 +154,11 @@ describe('investmentLoss', function () {
       repairCost: new HousingNumber(500, "yearly"),
       housePrice: 300000,
       growthRate: new HousingNumber(.05, "yearly"),
-      hoaFee: new HousingNumber(255, "monthly")
+      hoaFee: new HousingNumber(255, "monthly"),
+      loan: {
+        interestRate: new HousingNumber(.03, "yearly"),
+        term: 30
+      }
     };
 
     const investment: IInvestment = {
@@ -203,7 +212,11 @@ describe('houseAppreciation', function () {
       repairCost: new HousingNumber(500, "yearly"),
       housePrice: 300000,
       growthRate: new HousingNumber(.05, "yearly"),
-      hoaFee: new HousingNumber(255, "monthly")
+      hoaFee: new HousingNumber(255, "monthly"),
+      loan: {
+        interestRate: new HousingNumber(.03, "yearly"),
+        term: 30
+      }
     };
 
     const rate = 1 + house.growthRate.yearly();
@@ -212,5 +225,32 @@ describe('houseAppreciation', function () {
     expect(houseAppreciation(house, 2)).toEqual(house.housePrice * Math.pow(rate, 2));
     expect(houseAppreciation(house, 5)).toEqual(house.housePrice * Math.pow(rate, 5));
     expect(houseAppreciation(house, 50)).toEqual(house.housePrice * Math.pow(rate, 50));
+  })
+});
+
+// TODO: fix property taxes (goes up as house price goes up)
+
+describe('loanPrinciple', function () {
+  it('Happy Path', function () {
+    const house: IHouse = {
+      plan: "house",
+      utilityCost: new HousingNumber(105, "monthly"),
+      payment: new HousingNumber(765.21, "monthly"),
+      downPayment: 60500,
+      chargeForRoom: new HousingNumber(0, "monthly"),
+      chargeForRoomIncrease: new HousingNumber(0, "yearly"),
+      extraBedrooms: 0,
+      repairCost: new HousingNumber(500, "yearly"),
+      housePrice: 242000,
+      growthRate: new HousingNumber(.05, "yearly"),
+      hoaFee: new HousingNumber(255, "monthly"),
+      loan: {
+        interestRate: new HousingNumber(.03, "yearly"),
+        term: 30
+      }
+    };
+    expect(loanPrinciple(house, 30)).toBeCloseTo(0, 0);
+    expect(loanPrinciple(house, 29)).toBeCloseTo(9036);
+    expect(loanPrinciple(house, 1)).toBeCloseTo(177711);
   })
 });
