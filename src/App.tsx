@@ -10,7 +10,7 @@ import {
   TableRow
 } from '@material-ui/core';
 import {InputDialog, InputDialogData} from './components/InputDialog';
-import {IHousing, Plan, IHouse, IRental, IInvestment} from './main';
+import {IHousing, Plan, IHouse, IRental, IInvestment, investmentLoss} from './main';
 import {HousingNumber} from './number';
 
 function App() {
@@ -32,11 +32,19 @@ function App() {
     }
 
     const file = files[0];
+    if (!file) {
+      return;
+    }
+
     const content = await file.text();
     const csvRows = content.split('\n').map(row => row.split(','));
 
     const newRows: InputDialogData[] = [];
     for (const csvCols of csvRows) {
+      if (csvCols.length !== 16) {
+        continue;
+      }
+
       const plan = csvCols[0] as Plan;
       const years = Number(csvCols[1]);
       const isHouse = plan === 'house';
@@ -44,6 +52,7 @@ function App() {
       const rental = {} as IRental;
       const housing = isHouse ? house : rental;
 
+      housing.plan = plan;
       housing.payment = new HousingNumber(Number(csvCols[2]), "monthly");
       housing.downPayment = Number(csvCols[3]);
       housing.extraBedrooms = Number(csvCols[4]);
@@ -64,16 +73,14 @@ function App() {
         growthRate: new HousingNumber(Number(csvCols[15]), "yearly"),
       };
 
-      console.log(csvCols);
-      const investmentLoss = Number(csvCols[16]);
-
+      console.log(csvCols)
       newRows.push({
         housingType: plan,
         years,
         house,
         rental,
         investment,
-        investmentLoss
+        investmentLoss: investmentLoss(housing, investment, years)
       });
     }
 
@@ -107,8 +114,6 @@ function App() {
         row.investment.principle,
         row.investment.contribution.monthly(),
         row.investment.growthRate.yearly(),
-
-        row.investmentLoss,
       ]);
     }
 
