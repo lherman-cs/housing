@@ -22,6 +22,10 @@ const moneyFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2
 })
 
+function percentFormat(rate: number): string {
+  return (rate * 100).toFixed(2) + '%'
+}
+
 function App() {
   const [open, setOpen] = React.useState(false);
   const [rows, setRows] = React.useState<InputDialogData[]>([]);
@@ -205,19 +209,19 @@ function App() {
                 <TableCell align="center">{moneyFormatter.format(housing.downPayment)}</TableCell>
                 <TableCell align="center">{housing.extraBedrooms}</TableCell>
                 <TableCell align="center">{moneyFormatter.format(housing.chargeForRoom.monthly())}</TableCell>
-                <TableCell align="center">{housing.chargeForRoomIncrease.yearly()}</TableCell>
+                <TableCell align="center">{percentFormat(housing.chargeForRoomIncrease.yearly())}</TableCell>
                 <TableCell align="center">{moneyFormatter.format(housing.utilityCost.monthly())}</TableCell>
 
                 <TableCell align="center">{isHouse ? moneyFormatter.format(row.house.repairCost.yearly()) : 'N/A'}</TableCell>
                 <TableCell align="center">{isHouse ? moneyFormatter.format(row.house.housePrice) : 'N/A'}</TableCell>
-                <TableCell align="center">{isHouse ? row.house.growthRate.yearly() : 'N/A'}</TableCell>
-                <TableCell align="center">{isHouse ? moneyFormatter.format(row.house.hoaFee.yearly()) : 'N/A'}</TableCell>
+                <TableCell align="center">{isHouse ? percentFormat(row.house.growthRate.yearly()) : 'N/A'}</TableCell>
+                <TableCell align="center">{isHouse ? moneyFormatter.format(row.house.hoaFee.monthly()) : 'N/A'}</TableCell>
 
-                <TableCell align="center">{!isHouse ? row.rental.paymentIncrease.yearly() : 'N/A'}</TableCell>
+                <TableCell align="center">{!isHouse ? percentFormat(row.rental.paymentIncrease.yearly()) : 'N/A'}</TableCell>
 
                 <TableCell align="center">{moneyFormatter.format(row.investment.principle)}</TableCell>
                 <TableCell align="center">{moneyFormatter.format(row.investment.contribution.monthly())}</TableCell>
-                <TableCell align="center">{row.investment.growthRate.yearly()}</TableCell>
+                <TableCell align="center">{percentFormat(row.investment.growthRate.yearly())}</TableCell>
 
                 <TableCell align="center">{moneyFormatter.format(row.investmentLoss)}</TableCell>
                 <TableCell align="center">
