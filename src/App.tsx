@@ -16,6 +16,12 @@ import {InputDialog, InputDialogData, InputDialogDataInit} from './components/In
 import {IHousing, Plan, IHouse, IRental, IInvestment, investmentLoss} from './main';
 import {HousingNumber} from './number';
 
+const moneyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2
+})
+
 function App() {
   const [open, setOpen] = React.useState(false);
   const [rows, setRows] = React.useState<InputDialogData[]>([]);
@@ -161,8 +167,7 @@ function App() {
               <TableCell colSpan={6} align="center">Housing</TableCell>
               <TableCell colSpan={4} align="center">House</TableCell>
               <TableCell colSpan={1} align="center">Apartment</TableCell>
-              <TableCell colSpan={3} align="center">Investment</TableCell>
-              <TableCell rowSpan={2} align="center">Investment Loss</TableCell>
+              <TableCell colSpan={4} align="center">Investment</TableCell>
               <TableCell rowSpan={2} align="center">Actions</TableCell>
             </TableRow>
             <TableRow>
@@ -183,6 +188,8 @@ function App() {
               <TableCell align="center">Principle</TableCell>
               <TableCell align="center">Contribution</TableCell>
               <TableCell align="center">Growth Rate</TableCell>
+
+              <TableCell align="center">Investment Loss</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -194,25 +201,25 @@ function App() {
                 <TableCell align="center">{row.housingType}</TableCell>
                 <TableCell align="center">{row.years}</TableCell>
 
-                <TableCell align="center">{housing.payment.monthly()}</TableCell>
-                <TableCell align="center">{housing.downPayment}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(housing.payment.monthly())}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(housing.downPayment)}</TableCell>
                 <TableCell align="center">{housing.extraBedrooms}</TableCell>
-                <TableCell align="center">{housing.chargeForRoom.monthly()}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(housing.chargeForRoom.monthly())}</TableCell>
                 <TableCell align="center">{housing.chargeForRoomIncrease.yearly()}</TableCell>
-                <TableCell align="center">{housing.utilityCost.monthly()}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(housing.utilityCost.monthly())}</TableCell>
 
-                <TableCell align="center">{isHouse ? row.house.repairCost.yearly() : 'N/A'}</TableCell>
-                <TableCell align="center">{isHouse ? row.house.housePrice : 'N/A'}</TableCell>
+                <TableCell align="center">{isHouse ? moneyFormatter.format(row.house.repairCost.yearly()) : 'N/A'}</TableCell>
+                <TableCell align="center">{isHouse ? moneyFormatter.format(row.house.housePrice) : 'N/A'}</TableCell>
                 <TableCell align="center">{isHouse ? row.house.growthRate.yearly() : 'N/A'}</TableCell>
-                <TableCell align="center">{isHouse ? row.house.hoaFee.yearly() : 'N/A'}</TableCell>
+                <TableCell align="center">{isHouse ? moneyFormatter.format(row.house.hoaFee.yearly()) : 'N/A'}</TableCell>
 
                 <TableCell align="center">{!isHouse ? row.rental.paymentIncrease.yearly() : 'N/A'}</TableCell>
 
-                <TableCell align="center">{row.investment.principle}</TableCell>
-                <TableCell align="center">{row.investment.contribution.monthly()}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(row.investment.principle)}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(row.investment.contribution.monthly())}</TableCell>
                 <TableCell align="center">{row.investment.growthRate.yearly()}</TableCell>
 
-                <TableCell align="center">{row.investmentLoss}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(row.investmentLoss)}</TableCell>
                 <TableCell align="center">
                   <ButtonGroup variant="text" color="primary" aria-label="text primary button group">
                     <IconButton color="primary" aria-label="upload picture" component="span" onClick={() => handleEdit(i)}>
