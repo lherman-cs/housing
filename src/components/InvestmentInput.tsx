@@ -6,7 +6,8 @@ import { HousingNumber, Period } from '../number'
 import { 
   FormControl,
   InputAdornment,
-  TextField
+  TextField,
+  FormHelperText
 } from '@material-ui/core';
 
 type InvestmentInputProps = {
@@ -36,7 +37,7 @@ export function InvestmentInput({ value, onChange }: InvestmentInputProps) {
     <div>
       <FormControl variant="filled">
         <TextField
-          label="Principle"
+          label="Investment Principle"
           id="standard-number"
           type="number"
           value={value.principle}
@@ -45,11 +46,12 @@ export function InvestmentInput({ value, onChange }: InvestmentInputProps) {
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
           />
+          <FormHelperText>How much money do you have currently (we expect you to take your down payment out of this money)</FormHelperText>
       </FormControl>
       <br/>
       <FormControl variant="filled">
         <TextField
-          label="Contribution"
+          label="Monthly Contribution"
           id="standard-number"
           type="number"
           value={value.contribution.monthly()}
@@ -58,12 +60,13 @@ export function InvestmentInput({ value, onChange }: InvestmentInputProps) {
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
           />
+          <FormHelperText>How much do you contribute to your principle each month?</FormHelperText>
       </FormControl>
 
       <br/>
       <FormControl variant="filled">
         <TextField
-          label="Growth Rate"
+          label="Average Return"
           id="standard-number"
           type="number"
           value={value.growthRate.yearly()}
@@ -72,6 +75,7 @@ export function InvestmentInput({ value, onChange }: InvestmentInputProps) {
              endAdornment: <InputAdornment position="end">%</InputAdornment>,
           }}
           />
+          <FormHelperText>What is the annual average rate of return of your portfolio?</FormHelperText>
       </FormControl>
       <br/>
     </div>

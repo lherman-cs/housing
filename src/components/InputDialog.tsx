@@ -20,7 +20,6 @@ import {InvestmentInput} from './InvestmentInput';
 
 const DEFAULT_HOUSING: IHousing = {
   plan: "house",
-  payment: new HousingNumber(800, 'monthly'),
   downPayment: 0,
   chargeForRoom: new HousingNumber(600, 'monthly'),
   chargeForRoomIncrease: new HousingNumber(.03, "yearly"),
@@ -35,6 +34,8 @@ const DEFAULT_HOUSE: IHouse = {
   housePrice: 250000,
   growthRate: new HousingNumber(0.04, "yearly"),
   hoaFee: new HousingNumber(250, "monthly"),
+  insurance: new HousingNumber(85, "monthly"),
+  taxes: new HousingNumber(202, "monthly"),
   loan: {
     interestRate: new HousingNumber(.03, "yearly"),
     principle: 250000,
@@ -45,6 +46,7 @@ const DEFAULT_HOUSE: IHouse = {
 const DEFAULT_RENTAL: IRental = {
   ...DEFAULT_HOUSING,
   plan: "rental",
+  payment: new HousingNumber(900, "monthly"),
   paymentIncrease: new HousingNumber(0.01, "yearly")
 };
 
@@ -158,6 +160,7 @@ export function InputDialog({initialData, onSubmit, onClose, open}: InputDialogP
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
             }}
           />
+          <FormHelperText>How long do you plan to stay in this housing situation?</FormHelperText>
         </FormControl>
       </DialogContent>
       <DialogActions>

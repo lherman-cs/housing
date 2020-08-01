@@ -13,7 +13,7 @@ import {
 } from '@material-ui/core';
 import { Edit, Delete } from "@material-ui/icons";
 import {InputDialog, InputDialogData, InputDialogDataInit} from './components/InputDialog';
-import {IHousing} from './main';
+import {IHousing, monthlyPayment  } from './main';
 import {loadCSV, downloadCSV} from './csv'
 
 const moneyFormatter = new Intl.NumberFormat('en-US', {
@@ -122,12 +122,11 @@ function App() {
             {rows.sort((a, b) => a.investmentLoss - b.investmentLoss).map((row, i) => {
               const isHouse = row.housingType === 'house';
               const housing: IHousing = isHouse ? row.house : row.rental;
-
               return (<TableRow>
                 <TableCell align="center">{row.housingType}</TableCell>
                 <TableCell align="center">{row.years}</TableCell>
 
-                <TableCell align="center">{moneyFormatter.format(housing.payment.monthly())}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(monthlyPayment(isHouse ? row.house : row.rental))}</TableCell>
                 <TableCell align="center">{moneyFormatter.format(housing.downPayment)}</TableCell>
                 <TableCell align="center">{housing.extraBedrooms}</TableCell>
                 <TableCell align="center">{moneyFormatter.format(housing.chargeForRoom.monthly())}</TableCell>

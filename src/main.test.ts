@@ -10,7 +10,8 @@ import {
   loanPrinciple,
   ILoan,
   loanPayment,
-  round
+  round,
+  monthlyPayment
 } from "./main";
 import { HousingNumber } from "./number";
 
@@ -60,11 +61,11 @@ describe('investmentLoss', function () {
     const rental: IRental = {
       plan: "rental",
       utilityCost: new HousingNumber(105, "monthly"),
-      payment: new HousingNumber(1000, "monthly"),
       downPayment: 0,
       chargeForRoom: new HousingNumber(0, "monthly"),
       chargeForRoomIncrease: new HousingNumber(0, "yearly"),
       extraBedrooms: 0,
+      payment: new HousingNumber(1000, "monthly"),
       paymentIncrease: new HousingNumber(0.05, "yearly")
     };
 
@@ -100,8 +101,6 @@ describe('investmentLoss', function () {
   it('House Good', function () {
     const house: IHouse = {
       plan: "house",
-      utilityCost: new HousingNumber(105, "monthly"),
-      payment: new HousingNumber(800, "monthly"),
       downPayment: 0,
       chargeForRoom: new HousingNumber(0, "monthly"),
       chargeForRoomIncrease: new HousingNumber(0, "yearly"),
@@ -109,7 +108,10 @@ describe('investmentLoss', function () {
       repairCost: new HousingNumber(500, "yearly"),
       housePrice: 300000,
       growthRate: new HousingNumber(.05, "yearly"),
+      utilityCost: new HousingNumber(105, "monthly"),
       hoaFee: new HousingNumber(255, "monthly"),
+      insurance: new HousingNumber(85, "monthly"),
+      taxes: new HousingNumber(202, "monthly"),
       loan: {
         interestRate: new HousingNumber(.03, "yearly"),
         term: 30,
@@ -134,7 +136,9 @@ describe('investmentLoss', function () {
       investment.principle - house.downPayment,
       new HousingNumber(
         investment.contribution.monthly()
-        - house.payment.monthly()
+        - loanPayment(house.loan).monthly()
+        - house.taxes.monthly()
+        - house.insurance.monthly()
         - house.utilityCost.monthly()
         - house.hoaFee.monthly()
         - house.repairCost.monthly(),
@@ -150,7 +154,6 @@ describe('investmentLoss', function () {
     const house: IHouse = {
       plan: "house",
       utilityCost: new HousingNumber(105, "monthly"),
-      payment: new HousingNumber(800, "monthly"),
       downPayment: 0,
       chargeForRoom: new HousingNumber(300, "monthly"),
       chargeForRoomIncrease: new HousingNumber(.02, "yearly"),
@@ -159,6 +162,8 @@ describe('investmentLoss', function () {
       housePrice: 300000,
       growthRate: new HousingNumber(.05, "yearly"),
       hoaFee: new HousingNumber(255, "monthly"),
+      insurance: new HousingNumber(85, "monthly"),
+      taxes: new HousingNumber(202, "monthly"),
       loan: {
         interestRate: new HousingNumber(.03, "yearly"),
         term: 30,
@@ -182,7 +187,9 @@ describe('investmentLoss', function () {
 
     const rentIncome = house.chargeForRoom.monthly() * house.extraBedrooms;
     const monthlyInvestment = investment.contribution.monthly()
-      - house.payment.monthly()
+      - loanPayment(house.loan).monthly()
+      - house.taxes.monthly()
+      - house.insurance.monthly()  
       - house.utilityCost.monthly()
       - house.hoaFee.monthly()
       - house.repairCost.monthly()
@@ -209,7 +216,6 @@ describe('houseAppreciation', function () {
     const house: IHouse = {
       plan: "house",
       utilityCost: new HousingNumber(105, "monthly"),
-      payment: new HousingNumber(800, "monthly"),
       downPayment: 0,
       chargeForRoom: new HousingNumber(0, "monthly"),
       chargeForRoomIncrease: new HousingNumber(0, "yearly"),
@@ -218,6 +224,8 @@ describe('houseAppreciation', function () {
       housePrice: 300000,
       growthRate: new HousingNumber(.05, "yearly"),
       hoaFee: new HousingNumber(255, "monthly"),
+      insurance: new HousingNumber(85, "monthly"),
+      taxes: new HousingNumber(202, "monthly"),
       loan: {
         interestRate: new HousingNumber(.03, "yearly"),
         term: 30,
@@ -278,7 +286,10 @@ describe('loanPayment', function () {
   })
 });
 
-// TODO: fix property taxes (goes up as house price goes up)
+// TODO: fix property taxes (goes up as house price goes up)(can be annually)
+// TODO: home insurance goes up each year, add this calculation
+// TODO: add rental insurance calculation
+// TODO: add tax breaks on some stuff
 // TODO: fix HOA (goes up annually)
 
 function expectWithinRange(value: number, expectedValue: number, expectedInterval: number){
@@ -322,5 +333,54 @@ describe('loanPrinciple', function () {
     expectWithinRange(loanPrinciple(loan, 29), 9036, 1);
     expectWithinRange(loanPrinciple(loan, 1), 177711, 1);
     expectWithinRange(loanPrinciple(loan, 30), 0, 1);
+  })
+});
+
+describe('monthlyPayment', function () {
+  it('House Happy Path', function () {
+    const house: IHouse = {
+      plan: "house",
+      utilityCost: new HousingNumber(105, "monthly"),
+      downPayment: 0,
+      chargeForRoom: new HousingNumber(0, "monthly"),
+      chargeForRoomIncrease: new HousingNumber(0, "yearly"),
+      extraBedrooms: 0,
+      repairCost: new HousingNumber(500, "yearly"),
+      housePrice: 300000,
+      growthRate: new HousingNumber(.05, "yearly"),
+      hoaFee: new HousingNumber(255, "monthly"),
+      insurance: new HousingNumber(85, "monthly"),
+      taxes: new HousingNumber(202, "monthly"),
+      loan: {
+        interestRate: new HousingNumber(.03, "yearly"),
+        term: 30,
+        principle: 300000
+      }
+    };
+    expect(monthlyPayment(house)).toEqual(
+      house.utilityCost.monthly() 
+      + house.insurance.monthly()
+      + house.taxes.monthly()
+      + house.hoaFee.monthly()
+      + loanPayment(house.loan).monthly()
+      + house.repairCost.monthly()
+    );
+  })
+  it('Rental Happy Path', function () {
+    const rental: IRental = {
+      plan: "rental",
+      utilityCost: new HousingNumber(105, "monthly"),
+      downPayment: 0,
+      chargeForRoom: new HousingNumber(0, "monthly"),
+      chargeForRoomIncrease: new HousingNumber(0, "yearly"),
+      extraBedrooms: 0,
+      payment: new HousingNumber(1000, "monthly"),
+      paymentIncrease: new HousingNumber(0.05, "yearly")
+    };
+
+    expect(monthlyPayment(rental)).toEqual(
+      rental.utilityCost.monthly() 
+      + rental.payment.monthly()
+    );
   })
 });

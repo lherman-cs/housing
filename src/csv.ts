@@ -19,7 +19,6 @@ export function loadCSV(raw: string) {
       const housing = isHouse ? house : rental;
 
       housing.plan = plan;
-      housing.payment = new HousingNumber(Number(csvCols[2]), "monthly");
       housing.downPayment = Number(csvCols[3]);
       housing.extraBedrooms = Number(csvCols[4]);
       housing.chargeForRoom = new HousingNumber(Number(csvCols[5]), "monthly");
@@ -62,7 +61,6 @@ export function downloadCSV(rows: InputDialogData[]): string {
         row.housingType,
         row.years,
 
-        housing.payment.monthly(),
         housing.downPayment,
         housing.extraBedrooms,
         housing.chargeForRoom.monthly(),

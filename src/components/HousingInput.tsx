@@ -39,20 +39,6 @@ function HousingInput({ value, onChange }: HousingInputProps) {
     <div>
       <FormControl variant="filled">
         <TextField
-          label="Monthly Payment"
-          id="standard-number"
-          type="number"
-          value={value.payment.monthly()}
-          onChange={transformers.HousingNumber('payment', 'monthly')}
-          InputProps={{
-            startAdornment: <InputAdornment position="start">$</InputAdornment>,
-          }}
-          />
-        <FormHelperText>e.g. rent, morgage</FormHelperText>
-      </FormControl>
-      <br/>
-      <FormControl variant="filled">
-        <TextField
           label="Upfront Costs"
           id="standard-number"
           type="number"
@@ -62,7 +48,7 @@ function HousingInput({ value, onChange }: HousingInputProps) {
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
           />
-        <FormHelperText>e.g. move-in fees, non-refundable fees, down payment</FormHelperText>
+        <FormHelperText>e.g. move-in fees, non-refundable fees, pizza + beer for your friends who helped you move</FormHelperText>
       </FormControl>
       <br/>
       <FormControl variant="filled">
@@ -141,7 +127,35 @@ export function HouseInput({value, onChange} : HouseInputProps) {
       <div>
       <FormControl variant="filled">
         <TextField
-          label="Repair Cost"
+          label="Monthly Home Insurance"
+          id="standard-number"
+          type="number"
+          value={value.insurance.monthly()}
+          onChange={transformers.HousingNumber('insurance', 'yearly')}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">$</InputAdornment>,
+          }}
+          />
+        <FormHelperText>Expected home insurance monthly payment</FormHelperText>
+      </FormControl>
+      <br/>
+      <FormControl variant="filled">
+        <TextField
+          label="Monthly Property Taxes"
+          id="standard-number"
+          type="number"
+          value={value.taxes.monthly()}
+          onChange={transformers.HousingNumber('taxes', 'yearly')}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">$</InputAdornment>,
+          }}
+          />
+        <FormHelperText>Expected property taxes per month</FormHelperText>
+      </FormControl>
+      <br/>
+      <FormControl variant="filled">
+        <TextField
+          label="Annual Repair Cost"
           id="standard-number"
           type="number"
           value={value.repairCost.yearly()}
@@ -150,6 +164,7 @@ export function HouseInput({value, onChange} : HouseInputProps) {
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
           />
+        <FormHelperText>How much you expect to spend annually on home repairs</FormHelperText>
       </FormControl>
       <br/>
       <FormControl variant="filled">
@@ -163,11 +178,12 @@ export function HouseInput({value, onChange} : HouseInputProps) {
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
           />
+        <FormHelperText>How much you expect to pay for the home</FormHelperText>
       </FormControl>
       <br/>
       <FormControl variant="filled">
         <TextField
-          label="Growth Rate"
+          label="Home Value Appreciation"
           id="standard-number"
           type="number"
           value={value.growthRate.yearly()}
@@ -177,6 +193,7 @@ export function HouseInput({value, onChange} : HouseInputProps) {
 
           }}
           />
+        <FormHelperText>How much you expect home value to go up each year</FormHelperText>
       </FormControl>
       <br/>
       <FormControl variant="filled">
@@ -191,6 +208,7 @@ export function HouseInput({value, onChange} : HouseInputProps) {
 
           }}
           />
+        <FormHelperText>Home Owner's Association Monthly Fee</FormHelperText>
       </FormControl>
       </div>
       
@@ -221,6 +239,18 @@ export function RentalInput({value, onChange} : RentalInputProps) {
       <div>
       <FormControl variant="filled">
         <TextField
+          label="Monthly Rent Payment"
+          id="standard-number"
+          type="number"
+          value={value.payment.monthly()}
+          onChange={transformers.HousingNumber('payment', 'monthly')}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">$</InputAdornment>,
+          }}
+          />
+      </FormControl>
+      <FormControl variant="filled">
+        <TextField
           label="Payment Increase Rate"
           id="standard-number"
           type="number"
@@ -231,6 +261,7 @@ export function RentalInput({value, onChange} : RentalInputProps) {
 
           }}
           />
+        <FormHelperText>How much you expect rent to go up annually</FormHelperText>
       </FormControl>
       </div>
       

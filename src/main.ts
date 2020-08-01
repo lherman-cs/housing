@@ -16,7 +16,6 @@ export interface ILoan {
 
 export interface IHousing {
   plan: Plan;
-  payment: HousingNumber;
   downPayment: number;
   chargeForRoom: HousingNumber;
   chargeForRoomIncrease: HousingNumber;
@@ -30,10 +29,13 @@ export interface IHouse extends IHousing {
   growthRate: HousingNumber;
   hoaFee: HousingNumber;
   loan: ILoan;
+  insurance: HousingNumber;
+  taxes: HousingNumber;
 }
 
 export interface IRental extends IHousing {
   paymentIncrease: HousingNumber;
+  payment: HousingNumber;
 }
 
 function assert(condition: boolean, message?: string) {
@@ -141,8 +143,10 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
     for (let month = 1; month <= months; month++) {
       yield (
         investment.contribution.monthly()
+        - loanPayment(house.loan).monthly()
+        - house.taxes.monthly()
+        - house.insurance.monthly()
         - house.utilityCost.monthly()
-        - house.payment.monthly()
         - house.repairCost.monthly()
         - house.hoaFee.monthly()
         + rentIncome
@@ -217,4 +221,22 @@ export function loanPrinciple(loan: ILoan, years: number){
     if (loanAmount < 0) { loanAmount = 0; month = months;}
   }
   return Math.round(loanAmount);
+}
+
+function monthlyPaymentRental(rental: IRental){
+  return rental.payment.monthly() + rental.utilityCost.monthly();
+}
+
+function monthlyPaymentHouse(house: IHouse){
+  return loanPayment(house.loan).monthly()
+    + house.hoaFee.monthly()
+    + house.insurance.monthly() 
+    + house.taxes.monthly() 
+    + house.repairCost.monthly() 
+    + house.utilityCost.monthly()
+}
+
+export function monthlyPayment(housing: IHousing){
+  const isHouse = housing.plan === 'house';
+  return isHouse ? monthlyPaymentHouse(housing as IHouse): monthlyPaymentRental(housing as IRental);
 }
