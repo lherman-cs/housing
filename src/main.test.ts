@@ -7,7 +7,10 @@ import {
   reccuringInvestmentWithGenerator,
   IHouse,
   houseAppreciation,
-  loanPrinciple
+  loanPrinciple,
+  ILoan,
+  loanPayment,
+  round
 } from "./main";
 import { HousingNumber } from "./number";
 
@@ -109,7 +112,8 @@ describe('investmentLoss', function () {
       hoaFee: new HousingNumber(255, "monthly"),
       loan: {
         interestRate: new HousingNumber(.03, "yearly"),
-        term: 30
+        term: 30,
+        principle: 300000 
       }
     };
 
@@ -157,7 +161,8 @@ describe('investmentLoss', function () {
       hoaFee: new HousingNumber(255, "monthly"),
       loan: {
         interestRate: new HousingNumber(.03, "yearly"),
-        term: 30
+        term: 30,
+        principle: 300000
       }
     };
 
@@ -215,7 +220,8 @@ describe('houseAppreciation', function () {
       hoaFee: new HousingNumber(255, "monthly"),
       loan: {
         interestRate: new HousingNumber(.03, "yearly"),
-        term: 30
+        term: 30,
+        principle: 300000
       }
     };
 
@@ -228,29 +234,93 @@ describe('houseAppreciation', function () {
   })
 });
 
+describe('loanPayment', function () {
+  it('Happy Path', function () {
+    let loan: ILoan = {
+        interestRate: new HousingNumber(.03, "yearly"),
+        term: 30,
+        principle: 10000
+    };
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(42.16);
+
+    loan = {
+      interestRate: new HousingNumber(.03, "yearly"),
+      term: 7,
+      principle: 10000
+    };
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(132.13);
+
+    loan = {
+      interestRate: new HousingNumber(.045, "yearly"),
+      term: 15,
+      principle: 165000
+    };
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(1262.24);
+
+    loan = {
+      interestRate: new HousingNumber(.03, "yearly"),
+      principle: 9000,
+      term: 30
+    };
+    
+    expect(loanPayment(loan).monthly()).toBeCloseTo(37.94);
+
+    loan = {
+      interestRate: new HousingNumber(.03, "yearly"),
+      principle: 181500,
+      term: 30
+    }; 
+    
+    expect(loanPayment(loan).monthly()).toBeCloseTo(765, 0);
+  })
+});
+
 // TODO: fix property taxes (goes up as house price goes up)
+// TODO: fix HOA (goes up annually)
+
+function expectWithinRange(value: number, expectedValue: number, expectedInterval: number){
+  expect(value).toBeLessThanOrEqual(expectedValue+expectedInterval);
+  expect(value).toBeGreaterThanOrEqual(expectedValue-expectedInterval);
+}
+
+describe('round', function () {
+  it('Happy Path', function () {
+    expect(round(1)).toEqual(1);
+    expect(round(0)).toEqual(0);
+    expect(round(0.17645)).toEqual(0.18);
+    expect(round(0.1742)).toEqual(0.17);
+    expect(round(13942.53226)).toEqual(13942.53);
+    expect(round(-13942.53226)).toEqual(-13942.53);
+  })
+});
 
 describe('loanPrinciple', function () {
-  it('Happy Path', function () {
-    const house: IHouse = {
-      plan: "house",
-      utilityCost: new HousingNumber(105, "monthly"),
-      payment: new HousingNumber(765.21, "monthly"),
-      downPayment: 60500,
-      chargeForRoom: new HousingNumber(0, "monthly"),
-      chargeForRoomIncrease: new HousingNumber(0, "yearly"),
-      extraBedrooms: 0,
-      repairCost: new HousingNumber(500, "yearly"),
-      housePrice: 242000,
-      growthRate: new HousingNumber(.05, "yearly"),
-      hoaFee: new HousingNumber(255, "monthly"),
-      loan: {
+  it('Simple Happy Path', function () {
+    const loan: ILoan = {
         interestRate: new HousingNumber(.03, "yearly"),
-        term: 30
-      }
+        principle: 9000,
+        term: 3
     };
-    expect(loanPrinciple(house, 30)).toBeCloseTo(0, 0);
-    expect(loanPrinciple(house, 29)).toBeCloseTo(9036);
-    expect(loanPrinciple(house, 1)).toBeCloseTo(177711);
+    expect(loanPrinciple(loan, 30)).toBeCloseTo(0, 0);
+    expect(loanPrinciple(loan, 1)).toBeCloseTo(6089, 0);
+    expect(loanPrinciple(loan, 2)).toBeCloseTo(3090, 0);
+    expect(loanPrinciple(loan, 3)).toBeCloseTo(0, 0);
+  })
+
+  it('Happy Path', function () {
+    const loan: ILoan = {
+        interestRate: new HousingNumber(.03, "yearly"),
+        principle: 181500,
+        term: 30
+    };
+    // We expect the principle to be within +/- 1 of the expected principle
+    //   This is due to small variations in the way we and calulators like
+    //   Zillow do rounding
+    expectWithinRange(loanPrinciple(loan, 29), 9036, 1);
+    expectWithinRange(loanPrinciple(loan, 1), 177711, 1);
+    expectWithinRange(loanPrinciple(loan, 30), 0, 1);
   })
 });

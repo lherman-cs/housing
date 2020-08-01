@@ -37,6 +37,7 @@ const DEFAULT_HOUSE: IHouse = {
   hoaFee: new HousingNumber(250, "monthly"),
   loan: {
     interestRate: new HousingNumber(.03, "yearly"),
+    principle: 250000,
     term: 30
   }
 };
