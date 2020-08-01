@@ -14,120 +14,45 @@ import {
   DialogTitle
 } from '@material-ui/core';
 import {HouseInput, RentalInput} from './HousingInput'
-import {Plan, IHouse, IHousing, IRental, IInvestment, investmentLoss} from '../main';
-import {HousingNumber} from "../number";
+import {Plan, House, Rental, Investment} from '../main';
 import {InvestmentInput} from './InvestmentInput';
-
-const DEFAULT_HOUSING: IHousing = {
-  plan: "house",
-  downPayment: 0,
-  chargeForRoom: new HousingNumber(600, 'monthly'),
-  chargeForRoomIncrease: new HousingNumber(.03, "yearly"),
-  extraBedrooms: 0,
-  utilityCost: new HousingNumber(100, 'monthly'),
-};
-
-const DEFAULT_HOUSE: IHouse = {
-  ...DEFAULT_HOUSING,
-  plan: "house",
-  repairCost: new HousingNumber(500, "yearly"),
-  housePrice: 250000,
-  growthRate: new HousingNumber(0.04, "yearly"),
-  hoaFee: new HousingNumber(250, "monthly"),
-  insurance: new HousingNumber(85, "monthly"),
-  taxes: new HousingNumber(202, "monthly"),
-  loan: {
-    interestRate: new HousingNumber(.03, "yearly"),
-    principle: 250000,
-    term: 30
-  }
-};
-
-const DEFAULT_RENTAL: IRental = {
-  ...DEFAULT_HOUSING,
-  plan: "rental",
-  payment: new HousingNumber(900, "monthly"),
-  paymentIncrease: new HousingNumber(0.01, "yearly")
-};
-
-const DEFAULT_INVESTMENT: IInvestment = {
-  principle: 0,
-  contribution: new HousingNumber(1000, "monthly"),
-  growthRate: new HousingNumber(0.06, "yearly")
-}
 
 const DEFAULT_PROJECTED_YEARS = 10;
 
-export interface InputDialogDataInit {
-  housingType: Plan;
-  house: IHouse;
-  rental: IRental;
-  investment: IInvestment;
-  years: number;
-};
-
-export interface InputDialogData extends InputDialogDataInit {
-  investmentLoss: number;
+export class InputDialogData {
+  housingType: Plan = "house";
+  house = new House();
+  rental = new Rental();
+  investment = new Investment();
+  years = DEFAULT_PROJECTED_YEARS;
 };
 
 export interface InputDialogProps {
-  initialData?: InputDialogDataInit;
+  initialData: InputDialogData;
   open: boolean;
   onClose: () => void;
   onSubmit: (data: InputDialogData) => void
 };
 
 export function InputDialog({initialData, onSubmit, onClose, open}: InputDialogProps) {
-  if (!initialData) {
-    initialData = {
-      housingType: 'house',
-      house: DEFAULT_HOUSE,
-      rental: DEFAULT_RENTAL,
-      investment: DEFAULT_INVESTMENT,
-      years: DEFAULT_PROJECTED_YEARS
-    };
-  }
-
-  const [housingType, setHousingType] = React.useState<Plan>(initialData.housingType);
-  const [house, setHouse] = React.useState<IHouse>(initialData.house);
-  const [rental, setRental] = React.useState<IRental>(initialData.rental);
-  const [investment, setInvestment] = React.useState<IInvestment>(initialData.investment);
-  const [years, setYears] = React.useState<number>(initialData.years);
+  const [data, setData] = React.useState<InputDialogData>(initialData);
 
   React.useEffect(() => {
-    if (!initialData) {
-      return
-    }
-    setHousingType(initialData.housingType);
-    setHouse(initialData.house);
-    setRental(initialData.rental);
-    setInvestment(initialData.investment);
-    setYears(initialData.years);
+    setData(initialData);
   }, [initialData]);
 
   const handleChange = (event: React.ChangeEvent<{value: unknown}>) => {
     const value = event.target.value as Plan;
-    setHousingType(value);
-  };
-
-  const handleSubmit = () => {
-    onSubmit({
-      housingType,
-      house,
-      rental,
-      investment,
-      years,
-      investmentLoss: investmentLoss(housingType === 'house' ? house : rental, investment, years)
-    });
+    setData({...data, housingType: value});
   };
 
   let HousingInput;
-  switch (housingType) {
+  switch (data.housingType) {
     case "house":
-      HousingInput = <HouseInput value={house} onChange={setHouse} />
+      HousingInput = <HouseInput value={data.house} onChange={v => setData({...data, house: v})} />
       break;
     case "rental":
-      HousingInput = <RentalInput value={rental} onChange={setRental} />
+      HousingInput = <RentalInput value={data.rental} onChange={v => setData({...data, rental: v})} />
       break;
   }
 
@@ -139,7 +64,7 @@ export function InputDialog({initialData, onSubmit, onClose, open}: InputDialogP
           <InputLabel id="select-housing-type">Housing Type</InputLabel>
           <Select
             labelId="select-housing-type"
-            value={housingType}
+            value={data.housingType}
             onChange={handleChange}
           >
             <MenuItem value={'house'}>House</MenuItem>
@@ -148,14 +73,14 @@ export function InputDialog({initialData, onSubmit, onClose, open}: InputDialogP
           <FormHelperText>Select housing type to compare</FormHelperText>
         </FormControl>
         {HousingInput}
-        <InvestmentInput value={investment} onChange={setInvestment} />
+        <InvestmentInput value={data.investment} onChange={v => setData({...data, investment: v})} />
         <FormControl variant="filled">
           <TextField
             label="Projected Years"
             id="standard-number"
             type="number"
-            value={years}
-            onChange={e => setYears(Number(e.target.value))}
+            value={data.years}
+            onChange={e => setData({...data, years: Number(e.target.value)})}
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
             }}
@@ -167,7 +92,7 @@ export function InputDialog({initialData, onSubmit, onClose, open}: InputDialogP
         <Button onClick={onClose} color="primary">
           Cancel
           </Button>
-        <Button color="primary" onClick={handleSubmit}>Submit</Button>
+        <Button color="primary" onClick={() => onSubmit(data)}>Submit</Button>
       </DialogActions>
     </Dialog >
   );

@@ -1,41 +1,43 @@
-import { HousingNumber } from "./number";
+import {HousingNumber} from "./number";
 
 export type Plan = 'house' | 'rental'
 
-export interface IInvestment {
-  principle: number;
-  contribution: HousingNumber;
-  growthRate: HousingNumber;
+export class Investment {
+  principle = 100000;
+  contribution = new HousingNumber(1000, "monthly");
+  growthRate = new HousingNumber(0.06, "yearly");
 }
 
-export interface ILoan {
-  term: number;
-  interestRate: HousingNumber;
-  principle: number;
+export class Loan {
+  term = 0;
+  interestRate = new HousingNumber(0.03, "yearly");
+  principle = 200000;
 }
 
-export interface IHousing {
-  plan: Plan;
-  downPayment: number;
-  chargeForRoom: HousingNumber;
-  chargeForRoomIncrease: HousingNumber;
-  extraBedrooms: number;
-  utilityCost: HousingNumber;
+export class Housing {
+  plan: Plan = "house";
+  downPayment = 50000;
+  chargeForRoom = new HousingNumber(600, "monthly");
+  chargeForRoomIncrease = new HousingNumber(0.03, "yearly");
+  extraBedrooms = 0;
+  utilityCost = new HousingNumber(100, "monthly");
 }
 
-export interface IHouse extends IHousing {
-  repairCost: HousingNumber;
-  housePrice: number;
-  growthRate: HousingNumber;
-  hoaFee: HousingNumber;
-  loan: ILoan;
-  insurance: HousingNumber;
-  taxes: HousingNumber;
+export class House extends Housing {
+  plan = "house" as Plan;
+  repairCost = new HousingNumber(500, "yearly");
+  housePrice = 250000;
+  growthRate = new HousingNumber(0.04, "yearly");
+  hoaFee = new HousingNumber(250, "monthly");
+  loan = new Loan();
+  insurance = new HousingNumber(85, "monthly");
+  taxes = new HousingNumber(202, "monthly");
 }
 
-export interface IRental extends IHousing {
-  paymentIncrease: HousingNumber;
-  payment: HousingNumber;
+export class Rental extends Housing {
+  plan = "rental" as Plan;
+  paymentIncrease = new HousingNumber(0.04, "yearly");
+  payment = new HousingNumber(900, "monthly");
 }
 
 function assert(condition: boolean, message?: string) {
@@ -115,20 +117,20 @@ export function reccuringInvestmentWithGenerator(base: number, invests: Generato
   return curr;
 };
 
-export function investmentLoss(housing: IHousing, investment: IInvestment, years: number) {
+export function investmentLoss(housing: Housing, investment: Investment, years: number) {
   assert(years >= 0, "years is negative");
 
   switch (housing.plan) {
     case "house":
-      return investmentLossHouse(housing as IHouse, investment, years);
+      return investmentLossHouse(housing as House, investment, years);
     case "rental":
-      return investmentLossRental(housing as IRental, investment, years);
+      return investmentLossRental(housing as Rental, investment, years);
     default:
       throw new Error("Unsupported plan");
   }
 }
 
-function investmentLossHouse(house: IHouse, investment: IInvestment, years: number) {
+function investmentLossHouse(house: House, investment: Investment, years: number) {
   assert(years >= 0, "years is negative");
 
   const withoutHousing = reccuringInvestment(
@@ -168,7 +170,7 @@ function investmentLossHouse(house: IHouse, investment: IInvestment, years: numb
 }
 
 // TODO: Find bug!!!
-function investmentLossRental(house: IRental, investment: IInvestment, years: number) {
+function investmentLossRental(house: Rental, investment: Investment, years: number) {
   assert(years >= 0, "years is negative");
 
   const withoutHousing = reccuringInvestment(
@@ -194,23 +196,23 @@ function investmentLossRental(house: IRental, investment: IInvestment, years: nu
   return withoutHousing - withHousing;
 }
 
-export function houseAppreciation(house: IHouse, years: number) {
+export function houseAppreciation(house: House, years: number) {
   return house.housePrice * Math.pow(1 + house.growthRate.yearly(), years)
 }
 
-export function loanPayment (loan: ILoan) {
+export function loanPayment(loan: Loan) {
   const numPayments = 12 * loan.term;
   const rate = loan.interestRate.monthly()
-  const top = rate * Math.pow(1+rate, numPayments)
-  const bottom = Math.pow(1+rate, numPayments) - 1
-  return new HousingNumber(loan.principle * top / bottom, "monthly" )
+  const top = rate * Math.pow(1 + rate, numPayments)
+  const bottom = Math.pow(1 + rate, numPayments) - 1
+  return new HousingNumber(loan.principle * top / bottom, "monthly")
 }
 
 export function round(n: number) {
   return +n.toFixed(2)
 }
 
-export function loanPrinciple(loan: ILoan, years: number){
+export function loanPrinciple(loan: Loan, years: number) {
   let loanAmount = loan.principle;
   const months = years * 12;
   const payment = loanPayment(loan).monthly()
@@ -218,25 +220,25 @@ export function loanPrinciple(loan: ILoan, years: number){
     const interest = round(loanAmount * loan.interestRate.monthly())
     const principle = payment - interest
     loanAmount -= principle;
-    if (loanAmount < 0) { loanAmount = 0; month = months;}
+    if (loanAmount < 0) {loanAmount = 0; month = months;}
   }
   return Math.round(loanAmount);
 }
 
-function monthlyPaymentRental(rental: IRental){
+function monthlyPaymentRental(rental: Rental) {
   return rental.payment.monthly() + rental.utilityCost.monthly();
 }
 
-function monthlyPaymentHouse(house: IHouse){
+function monthlyPaymentHouse(house: House) {
   return loanPayment(house.loan).monthly()
     + house.hoaFee.monthly()
-    + house.insurance.monthly() 
-    + house.taxes.monthly() 
-    + house.repairCost.monthly() 
+    + house.insurance.monthly()
+    + house.taxes.monthly()
+    + house.repairCost.monthly()
     + house.utilityCost.monthly()
 }
 
-export function monthlyPayment(housing: IHousing){
+export function monthlyPayment(housing: Housing) {
   const isHouse = housing.plan === 'house';
-  return isHouse ? monthlyPaymentHouse(housing as IHouse): monthlyPaymentRental(housing as IRental);
+  return isHouse ? monthlyPaymentHouse(housing as House) : monthlyPaymentRental(housing as Rental);
 }

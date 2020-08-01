@@ -12,8 +12,8 @@ import {
   ButtonGroup,
 } from '@material-ui/core';
 import {Edit, Delete} from "@material-ui/icons";
-import {InputDialog, InputDialogData, InputDialogDataInit} from './components/InputDialog';
-import {IHousing, monthlyPayment} from './main';
+import {InputDialog, InputDialogData} from './components/InputDialog';
+import {Housing, monthlyPayment, investmentLoss} from './main';
 import {encodeCSV, decodeCSV} from './csv'
 
 const moneyFormatter = new Intl.NumberFormat('en-US', {
@@ -30,7 +30,7 @@ function App() {
   const [open, setOpen] = React.useState(false);
   const [rows, setRows] = React.useState<InputDialogData[]>([]);
   const [index, setIndex] = React.useState(-1);
-  const [initialData, setInitialData] = React.useState<InputDialogDataInit | undefined>();
+  const [initialData, setInitialData] = React.useState<InputDialogData>(new InputDialogData());
 
   function handleDownloadCSV() {
     const encodedUri = encodeURI("data:text/csv;charset=utf-8," + encodeCSV(rows));
@@ -49,8 +49,7 @@ function App() {
     }
 
     const content = await file.text();
-    decodeCSV(content, {});
-    setRows([]);
+    setRows(decodeCSV(content, new InputDialogData()));
   }
 
   const handleSubmit = (data: InputDialogData) => {
@@ -120,9 +119,9 @@ function App() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.sort((a, b) => a.investmentLoss - b.investmentLoss).map((row, i) => {
+            {rows.map((row, i) => {
               const isHouse = row.housingType === 'house';
-              const housing: IHousing = isHouse ? row.house : row.rental;
+              const housing: Housing = isHouse ? row.house : row.rental;
               return (<TableRow>
                 <TableCell align="center">{row.housingType}</TableCell>
                 <TableCell align="center">{row.years}</TableCell>
@@ -145,7 +144,7 @@ function App() {
                 <TableCell align="center">{moneyFormatter.format(row.investment.contribution.monthly())}</TableCell>
                 <TableCell align="center">{percentFormat(row.investment.growthRate.yearly())}</TableCell>
 
-                <TableCell align="center">{moneyFormatter.format(row.investmentLoss)}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(investmentLoss(housing, row.investment, row.years))}</TableCell>
                 <TableCell align="center">
                   <ButtonGroup variant="text" color="primary" aria-label="text primary button group">
                     <IconButton color="primary" aria-label="upload picture" component="span" onClick={() => handleEdit(i)}>

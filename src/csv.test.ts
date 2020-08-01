@@ -26,7 +26,7 @@ describe('encodeCSV', function () {
     }
   }
 
-  it('Happy Path', function () {
+  it('should be fine with single row', function () {
     const obj = {
       key1: "value1",
       key2: {
@@ -35,7 +35,6 @@ describe('encodeCSV', function () {
     };
 
     const encoded = encodeCSV([obj]);
-    console.log(encoded);
     const expectedHeaders = [".key1", ".key2.key3"];
     const expectedBody = [
       {".key1": "value1", ".key2.key3": "value2"}
@@ -43,10 +42,35 @@ describe('encodeCSV', function () {
 
     expectRows(encoded, expectedHeaders, expectedBody);
   })
+
+  it('should be fine with multiple rows', function () {
+    const obj1 = {
+      key1: "value1",
+      key2: {
+        key3: "value2"
+      }
+    };
+
+    const obj2 = {
+      key1: "poop",
+      key2: {
+        key3: "value2"
+      }
+    };
+
+    const encoded = encodeCSV([obj1, obj2]);
+    const expectedHeaders = [".key1", ".key2.key3"];
+    const expectedBody = [
+      {".key1": "value1", ".key2.key3": "value2"},
+      {".key1": "poop", ".key2.key3": "value2"}
+    ];
+
+    expectRows(encoded, expectedHeaders, expectedBody);
+  })
 });
 
 describe("decodeCSV", function () {
-  it('Happy Path', function () {
+  it('it should be fine with 1 row', function () {
     const obj = {
       key1: "value1",
       key2: {
@@ -64,5 +88,32 @@ describe("decodeCSV", function () {
     const encoded = encodeCSV([obj]);
     const decoded = decodeCSV(encoded, model);
     expect(decoded).toEqual([obj]);
+  });
+
+  it('it should be fine with multiple rows', function () {
+    const obj1 = {
+      key1: "value1",
+      key2: {
+        key3: new HousingNumber(2, "monthly")
+      }
+    };
+
+    const obj2 = {
+      key1: "poop",
+      key2: {
+        key3: new HousingNumber(1, "monthly")
+      }
+    };
+
+    const model = {
+      key1: "",
+      key2: {
+        key3: new HousingNumber(0, "monthly")
+      }
+    };
+
+    const encoded = encodeCSV([obj1, obj2]);
+    const decoded = decodeCSV(encoded, model);
+    expect(decoded).toEqual([obj1, obj2]);
   });
 });

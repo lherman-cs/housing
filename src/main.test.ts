@@ -1,19 +1,19 @@
 import {
   investmentLoss,
-  IRental,
-  IInvestment,
+  Rental,
+  Investment,
   exponentialSum,
   reccuringInvestment,
   reccuringInvestmentWithGenerator,
-  IHouse,
+  House,
   houseAppreciation,
   loanPrinciple,
-  ILoan,
+  Loan,
   loanPayment,
   round,
   monthlyPayment
 } from "./main";
-import { HousingNumber } from "./number";
+import {HousingNumber} from "./number";
 
 
 describe('exponentialSum', function () {
@@ -58,7 +58,7 @@ describe('recurringInvestmentWithGenerator', function () {
 
 describe('investmentLoss', function () {
   it('Rental Good', function () {
-    const rental: IRental = {
+    const rental: Rental = {
       plan: "rental",
       utilityCost: new HousingNumber(105, "monthly"),
       downPayment: 0,
@@ -69,7 +69,7 @@ describe('investmentLoss', function () {
       paymentIncrease: new HousingNumber(0.05, "yearly")
     };
 
-    const investment: IInvestment = {
+    const investment: Investment = {
       principle: 124383,
       contribution: new HousingNumber(14294, "monthly"),
       growthRate: new HousingNumber(0.07, "yearly")
@@ -82,7 +82,7 @@ describe('investmentLoss', function () {
       investment.growthRate,
       24
     );
-    const invest = function* (rental: IRental, investment: IInvestment) {
+    const invest = function* (rental: Rental, investment: Investment) {
       for (let i = 0; i < 12; i++) {
         yield investment.contribution.monthly() - 1000 - rental.utilityCost.monthly();
       }
@@ -99,7 +99,7 @@ describe('investmentLoss', function () {
   });
 
   it('House Good', function () {
-    const house: IHouse = {
+    const house: House = {
       plan: "house",
       downPayment: 0,
       chargeForRoom: new HousingNumber(0, "monthly"),
@@ -115,11 +115,11 @@ describe('investmentLoss', function () {
       loan: {
         interestRate: new HousingNumber(.03, "yearly"),
         term: 30,
-        principle: 300000 
+        principle: 300000
       }
     };
 
-    const investment: IInvestment = {
+    const investment: Investment = {
       principle: 124383,
       contribution: new HousingNumber(14294, "monthly"),
       growthRate: new HousingNumber(0.07, "yearly")
@@ -151,7 +151,7 @@ describe('investmentLoss', function () {
   });
 
   it('House with rental Good', function () {
-    const house: IHouse = {
+    const house: House = {
       plan: "house",
       utilityCost: new HousingNumber(105, "monthly"),
       downPayment: 0,
@@ -171,7 +171,7 @@ describe('investmentLoss', function () {
       }
     };
 
-    const investment: IInvestment = {
+    const investment: Investment = {
       principle: 124383,
       contribution: new HousingNumber(14294, "monthly"),
       growthRate: new HousingNumber(0.07, "yearly")
@@ -189,7 +189,7 @@ describe('investmentLoss', function () {
     const monthlyInvestment = investment.contribution.monthly()
       - loanPayment(house.loan).monthly()
       - house.taxes.monthly()
-      - house.insurance.monthly()  
+      - house.insurance.monthly()
       - house.utilityCost.monthly()
       - house.hoaFee.monthly()
       - house.repairCost.monthly()
@@ -213,7 +213,7 @@ describe('investmentLoss', function () {
 
 describe('houseAppreciation', function () {
   it('Happy Path', function () {
-    const house: IHouse = {
+    const house: House = {
       plan: "house",
       utilityCost: new HousingNumber(105, "monthly"),
       downPayment: 0,
@@ -244,10 +244,10 @@ describe('houseAppreciation', function () {
 
 describe('loanPayment', function () {
   it('Happy Path', function () {
-    let loan: ILoan = {
-        interestRate: new HousingNumber(.03, "yearly"),
-        term: 30,
-        principle: 10000
+    let loan: Loan = {
+      interestRate: new HousingNumber(.03, "yearly"),
+      term: 30,
+      principle: 10000
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(42.16);
@@ -273,15 +273,15 @@ describe('loanPayment', function () {
       principle: 9000,
       term: 30
     };
-    
+
     expect(loanPayment(loan).monthly()).toBeCloseTo(37.94);
 
     loan = {
       interestRate: new HousingNumber(.03, "yearly"),
       principle: 181500,
       term: 30
-    }; 
-    
+    };
+
     expect(loanPayment(loan).monthly()).toBeCloseTo(765, 0);
   })
 });
@@ -292,9 +292,9 @@ describe('loanPayment', function () {
 // TODO: add tax breaks on some stuff
 // TODO: fix HOA (goes up annually)
 
-function expectWithinRange(value: number, expectedValue: number, expectedInterval: number){
-  expect(value).toBeLessThanOrEqual(expectedValue+expectedInterval);
-  expect(value).toBeGreaterThanOrEqual(expectedValue-expectedInterval);
+function expectWithinRange(value: number, expectedValue: number, expectedInterval: number) {
+  expect(value).toBeLessThanOrEqual(expectedValue + expectedInterval);
+  expect(value).toBeGreaterThanOrEqual(expectedValue - expectedInterval);
 }
 
 describe('round', function () {
@@ -310,10 +310,10 @@ describe('round', function () {
 
 describe('loanPrinciple', function () {
   it('Simple Happy Path', function () {
-    const loan: ILoan = {
-        interestRate: new HousingNumber(.03, "yearly"),
-        principle: 9000,
-        term: 3
+    const loan: Loan = {
+      interestRate: new HousingNumber(.03, "yearly"),
+      principle: 9000,
+      term: 3
     };
     expect(loanPrinciple(loan, 30)).toBeCloseTo(0, 0);
     expect(loanPrinciple(loan, 1)).toBeCloseTo(6089, 0);
@@ -322,10 +322,10 @@ describe('loanPrinciple', function () {
   })
 
   it('Happy Path', function () {
-    const loan: ILoan = {
-        interestRate: new HousingNumber(.03, "yearly"),
-        principle: 181500,
-        term: 30
+    const loan: Loan = {
+      interestRate: new HousingNumber(.03, "yearly"),
+      principle: 181500,
+      term: 30
     };
     // We expect the principle to be within +/- 1 of the expected principle
     //   This is due to small variations in the way we and calulators like
@@ -338,7 +338,7 @@ describe('loanPrinciple', function () {
 
 describe('monthlyPayment', function () {
   it('House Happy Path', function () {
-    const house: IHouse = {
+    const house: House = {
       plan: "house",
       utilityCost: new HousingNumber(105, "monthly"),
       downPayment: 0,
@@ -358,7 +358,7 @@ describe('monthlyPayment', function () {
       }
     };
     expect(monthlyPayment(house)).toEqual(
-      house.utilityCost.monthly() 
+      house.utilityCost.monthly()
       + house.insurance.monthly()
       + house.taxes.monthly()
       + house.hoaFee.monthly()
@@ -367,7 +367,7 @@ describe('monthlyPayment', function () {
     );
   })
   it('Rental Happy Path', function () {
-    const rental: IRental = {
+    const rental: Rental = {
       plan: "rental",
       utilityCost: new HousingNumber(105, "monthly"),
       downPayment: 0,
@@ -379,7 +379,7 @@ describe('monthlyPayment', function () {
     };
 
     expect(monthlyPayment(rental)).toEqual(
-      rental.utilityCost.monthly() 
+      rental.utilityCost.monthly()
       + rental.payment.monthly()
     );
   })

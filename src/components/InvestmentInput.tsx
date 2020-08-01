@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  IInvestment
+import {
+  Investment
 } from '../main'
-import { HousingNumber, Period } from '../number'
-import { 
+import {HousingNumber, Period} from '../number'
+import {
   FormControl,
   InputAdornment,
   TextField,
@@ -11,20 +11,20 @@ import {
 } from '@material-ui/core';
 
 type InvestmentInputProps = {
-  value: IInvestment,
-  onChange: (value: IInvestment) => void,
+  value: Investment,
+  onChange: (value: Investment) => void,
 };
 
-export function InvestmentInput({ value, onChange }: InvestmentInputProps) {
+export function InvestmentInput({value, onChange}: InvestmentInputProps) {
   const transformers = {
-    "HousingNumber" : (prop: keyof IInvestment, type: Period) => 
+    "HousingNumber": (prop: keyof Investment, type: Period) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         onChange({
           ...value,
           [prop]: new HousingNumber(Number(event.target.value), type)
         });
       },
-    "Number": (prop: keyof IInvestment) => 
+    "Number": (prop: keyof Investment) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         onChange({
           ...value,
@@ -45,10 +45,10 @@ export function InvestmentInput({ value, onChange }: InvestmentInputProps) {
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
-          />
-          <FormHelperText>How much money do you have currently (we expect you to take your down payment out of this money)</FormHelperText>
+        />
+        <FormHelperText>How much money do you have currently (we expect you to take your down payment out of this money)</FormHelperText>
       </FormControl>
-      <br/>
+      <br />
       <FormControl variant="filled">
         <TextField
           label="Monthly Contribution"
@@ -59,11 +59,11 @@ export function InvestmentInput({ value, onChange }: InvestmentInputProps) {
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
-          />
-          <FormHelperText>How much do you contribute to your principle each month?</FormHelperText>
+        />
+        <FormHelperText>How much do you contribute to your principle each month?</FormHelperText>
       </FormControl>
 
-      <br/>
+      <br />
       <FormControl variant="filled">
         <TextField
           label="Average Return"
@@ -72,12 +72,12 @@ export function InvestmentInput({ value, onChange }: InvestmentInputProps) {
           value={value.growthRate.yearly()}
           onChange={transformers.HousingNumber('growthRate', 'yearly')}
           InputProps={{
-             endAdornment: <InputAdornment position="end">%</InputAdornment>,
+            endAdornment: <InputAdornment position="end">%</InputAdornment>,
           }}
-          />
-          <FormHelperText>What is the annual average rate of return of your portfolio?</FormHelperText>
+        />
+        <FormHelperText>What is the annual average rate of return of your portfolio?</FormHelperText>
       </FormControl>
-      <br/>
+      <br />
     </div>
   );
 }

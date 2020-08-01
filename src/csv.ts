@@ -69,11 +69,11 @@ export function decodeCSV<T extends any>(raw: string, model: T): T[] {
 
   // ignore headers
   const csvBody = csvRows.slice(1);
-  const csvNode = JSON.parse(JSON.stringify(csvModel));
   const rows = [];
   for (let i = 0; i < csvBody.length; i++) {
     // deep copy models
     const row = JSON.parse(JSON.stringify(model));
+    const csvNode = JSON.parse(JSON.stringify(csvModel));
 
     fillCSVNode(csvNode, csvBody[i]);
     fill(row, csvNode, model);
