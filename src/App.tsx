@@ -11,10 +11,10 @@ import {
   IconButton,
   ButtonGroup,
 } from '@material-ui/core';
-import { Edit, Delete } from "@material-ui/icons";
+import {Edit, Delete} from "@material-ui/icons";
 import {InputDialog, InputDialogData, InputDialogDataInit} from './components/InputDialog';
-import {IHousing, monthlyPayment  } from './main';
-import {loadCSV, downloadCSV} from './csv'
+import {IHousing, monthlyPayment} from './main';
+import {encodeCSV, decodeCSV} from './csv'
 
 const moneyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -30,14 +30,14 @@ function App() {
   const [open, setOpen] = React.useState(false);
   const [rows, setRows] = React.useState<InputDialogData[]>([]);
   const [index, setIndex] = React.useState(-1);
-  const [initialData, setInitialData] = React.useState<InputDialogDataInit|undefined>();
+  const [initialData, setInitialData] = React.useState<InputDialogDataInit | undefined>();
 
-  function handleDownloadCSV(){
-    const encodedUri = encodeURI(downloadCSV(rows));
+  function handleDownloadCSV() {
+    const encodedUri = encodeURI("data:text/csv;charset=utf-8," + encodeCSV(rows));
     window.open(encodedUri);
   }
-  
-  async function handleLoadCSV(event: React.ChangeEvent<HTMLInputElement>){
+
+  async function handleLoadCSV(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
     if (!files) {
       return;
@@ -49,15 +49,16 @@ function App() {
     }
 
     const content = await file.text();
-    setRows(loadCSV(content))
+    decodeCSV(content, {});
+    setRows([]);
   }
 
   const handleSubmit = (data: InputDialogData) => {
     if (index < 0 || index >= rows.length) {
-    setRows([
-      ...rows,
-      data
-    ]);
+      setRows([
+        ...rows,
+        data
+      ]);
     } else {
       rows[index] = data;
       setRows([...rows]);
@@ -148,10 +149,10 @@ function App() {
                 <TableCell align="center">
                   <ButtonGroup variant="text" color="primary" aria-label="text primary button group">
                     <IconButton color="primary" aria-label="upload picture" component="span" onClick={() => handleEdit(i)}>
-                      <Edit/>
+                      <Edit />
                     </IconButton>
                     <IconButton color="primary" aria-label="upload picture" component="span" onClick={() => handleRemove(i)}>
-                      <Delete/>
+                      <Delete />
                     </IconButton>
                   </ButtonGroup>
 

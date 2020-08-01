@@ -1,85 +1,145 @@
-import {InputDialogData } from './components/InputDialog';
-import {IHousing, Plan, IHouse, IRental, IInvestment, investmentLoss} from './main';
-import {HousingNumber} from './number';
+export function decodeCSV<T extends any>(raw: string, model: T): T[] {
+  const csvRows = raw.split('\n').map(row => row.split(','));
+  const csvHeaders = csvRows[0];
 
-export function loadCSV(raw: string) {
-    const csvRows = raw.split('\n').map(row => row.split(','));
+  const csvModel = {} as any;
+  for (let i = 0; i < csvHeaders.length; i++) {
+    const csvHeader = csvHeaders[i];
+    // first dot always represents root, ignoring.
+    const keys = csvHeader.split(".").slice(1);
+    let currentNode = csvModel;
 
-    const newRows: InputDialogData[] = [];
-    for (const csvCols of csvRows) {
-      if (csvCols.length !== 16) {
+
+    for (let j = 0; j < keys.length; j++) {
+      const key = keys[j];
+      if (!(key in currentNode)) {
+        currentNode[key] = j === keys.length - 1 ? i : {};
+      }
+
+      currentNode = currentNode[key];
+    }
+  }
+
+  function fillCSVNode(csvNode: any, cols: string[]) {
+    for (const key in csvNode) {
+      const value = csvNode[key];
+
+      if (typeof value === "number") {
+        csvNode[key] = cols[value];
+      } else {
+        fillCSVNode(value, cols);
+      }
+    }
+
+    return csvNode;
+  }
+
+  function fill(node: any, csvNode: any, model: any) {
+    if (!node) {
+      return;
+    }
+
+    for (const key in model) {
+      const value = model[key];
+      let t;
+
+      if (typeof value.fromCSV === "function") {
+        node[key] = value.fromCSV(csvNode[key]);
         continue;
       }
 
-      const plan = csvCols[0] as Plan;
-      const years = Number(csvCols[1]);
-      const isHouse = plan === 'house';
-      const house = {} as IHouse;
-      const rental = {} as IRental;
-      const housing = isHouse ? house : rental;
-
-      housing.plan = plan;
-      housing.downPayment = Number(csvCols[3]);
-      housing.extraBedrooms = Number(csvCols[4]);
-      housing.chargeForRoom = new HousingNumber(Number(csvCols[5]), "monthly");
-      housing.chargeForRoomIncrease = new HousingNumber(Number(csvCols[6]), "yearly");
-      housing.utilityCost = new HousingNumber(Number(csvCols[7]), "monthly");
-
-      house.repairCost = new HousingNumber(Number(csvCols[8]), "yearly");
-      house.housePrice = Number(csvCols[9]);
-      house.growthRate = new HousingNumber(Number(csvCols[10]), "yearly");
-      house.hoaFee = new HousingNumber(Number(csvCols[11]), "yearly");
-
-      rental.paymentIncrease = new HousingNumber(Number(csvCols[12]), "yearly");
-
-      const investment: IInvestment = {
-        principle: Number(csvCols[13]),
-        contribution: new HousingNumber(Number(csvCols[14]), "monthly"),
-        growthRate: new HousingNumber(Number(csvCols[15]), "yearly"),
-      };
-
-      newRows.push({
-        housingType: plan,
-        years,
-        house,
-        rental,
-        investment,
-        investmentLoss: investmentLoss(housing, investment, years)
-      });
+      switch (t = typeof value) {
+        case "number":
+          node[key] = Number(csvNode[key]);
+          break;
+        case "boolean":
+          node[key] = Boolean(csvNode[key]);
+          break;
+        case "string":
+          node[key] = csvNode[key];
+          break;
+        case "object":
+          fill(node[key], csvNode[key], value);
+          break;
+        default:
+          throw Error(`Unsupported type: ${t}`);
+      }
     }
-
-    return newRows;
   }
 
-export function downloadCSV(rows: InputDialogData[]): string {
-    const csvRows = [];
-    for (const row of rows) {
-      const isHouse = row.housingType === 'house';
-      const housing: IHousing = isHouse ? row.house : row.rental;
+  // ignore headers
+  const csvBody = csvRows.slice(1);
+  const csvNode = JSON.parse(JSON.stringify(csvModel));
+  const rows = [];
+  for (let i = 0; i < csvBody.length; i++) {
+    // deep copy models
+    const row = JSON.parse(JSON.stringify(model));
 
-      csvRows.push([
-        row.housingType,
-        row.years,
+    fillCSVNode(csvNode, csvBody[i]);
+    fill(row, csvNode, model);
+    rows.push(row);
+  }
 
-        housing.downPayment,
-        housing.extraBedrooms,
-        housing.chargeForRoom.monthly(),
-        housing.chargeForRoomIncrease.yearly(),
-        housing.utilityCost.monthly(),
+  return rows;
+}
 
-        isHouse ? row.house.repairCost.yearly() : 0,
-        isHouse ? row.house.housePrice : 0,
-        isHouse ? row.house.growthRate.yearly() : 0,
-        isHouse ? row.house.hoaFee.yearly() : 0,
+export function encodeCSV(rows: any[]): string {
+  const csvRows = [];
+  const keys = {} as any;
+  let keyCount = 0;
 
-        !isHouse ? row.rental.paymentIncrease.yearly() : 0,
+  function encode(tree: any): any {
+    const m = {} as any;
 
-        row.investment.principle,
-        row.investment.contribution.monthly(),
-        row.investment.growthRate.yearly(),
-      ]);
+    function visit(node: any, prefix: string) {
+      if (!node) {
+        return;
+      }
+
+      for (const key in node) {
+        const newPrefix = `${prefix}.${key}`;
+        const value = node[key];
+        let encodedValue = null;
+
+        if (typeof value.toCSV === "function") {
+          encodedValue = value.toCSV();
+        } else if (Array.isArray(value)) {
+          // TODO
+        } else if (typeof value === 'object') {
+          visit(value, newPrefix);
+        } else if (typeof value.toString === "function") {
+          encodedValue = value.toString();
+        } else {
+          encodedValue = value;
+        }
+
+        if (encodedValue) {
+          m[newPrefix] = encodedValue;
+
+          if (!(newPrefix in keys)) {
+            keys[newPrefix] = keyCount;
+            keyCount++;
+          }
+        }
+      }
     }
 
-    return "data:text/csv;charset=utf-8,"
-      + csvRows.map(e => e.join(",")).join("\n");
+    visit(tree, "");
+    return m;
   }
+
+  for (const row of rows) {
+    const m = encode(row);
+    const csvCols = new Array(keyCount);
+
+    for (const k in m) {
+      const i = keys[k];
+      csvCols[i] = m[k];
+    }
+
+    csvRows.push(csvCols);
+  }
+
+  return Object.keys(keys).join(",") + "\n"
+    + csvRows.map(e => e.join(",")).join("\n");
+}
