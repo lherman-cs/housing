@@ -4,13 +4,13 @@ import {
   House,
   Rental
 } from '../main'
-import {HousingNumber, Period} from '../number'
 import {
   FormControl,
   FormHelperText,
   InputAdornment,
   TextField
 } from '@material-ui/core';
+import { buildTransformers } from '../transformer';
 
 type HousingInputProps = {
   value: Housing,
@@ -18,22 +18,7 @@ type HousingInputProps = {
 };
 
 function HousingInput({value, onChange}: HousingInputProps) {
-  const transformers = {
-    "HousingNumber": (prop: keyof Housing, type: Period) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({
-          ...value,
-          [prop]: new HousingNumber(Number(event.target.value), type)
-        });
-      },
-    "Number": (prop: keyof Housing) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({
-          ...value,
-          [prop]: Number(event.target.value)
-        });
-      }
-  }
+  const housingTransformers = buildTransformers(value, onChange);
 
   return (
     <div>
@@ -43,7 +28,7 @@ function HousingInput({value, onChange}: HousingInputProps) {
           id="standard-number"
           type="number"
           value={value.downPayment}
-          onChange={transformers.Number('downPayment')}
+          onChange={housingTransformers.Number('downPayment')}
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
@@ -57,7 +42,7 @@ function HousingInput({value, onChange}: HousingInputProps) {
           id="standard-number"
           type="number"
           value={value.extraBedrooms}
-          onChange={transformers.Number('extraBedrooms')}
+          onChange={housingTransformers.Number('extraBedrooms')}
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
@@ -71,7 +56,7 @@ function HousingInput({value, onChange}: HousingInputProps) {
           id="standard-number"
           type="number"
           value={value.chargeForRoom.monthly()}
-          onChange={transformers.HousingNumber('chargeForRoom', 'monthly')}
+          onChange={housingTransformers.HousingNumber('chargeForRoom', 'monthly')}
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
@@ -85,7 +70,7 @@ function HousingInput({value, onChange}: HousingInputProps) {
           id="standard-number"
           type="number"
           value={value.chargeForRoomIncrease.yearly()}
-          onChange={transformers.HousingNumber('chargeForRoomIncrease', 'yearly')}
+          onChange={housingTransformers.HousingNumber('chargeForRoomIncrease', 'yearly')}
           InputProps={{
             endAdornment: <InputAdornment position="end">%</InputAdornment>,
           }}
@@ -104,22 +89,7 @@ type HouseInputProps = {
 };
 
 export function HouseInput({value, onChange}: HouseInputProps) {
-  const transformers = {
-    "HousingNumber": (prop: keyof House, type: Period) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({
-          ...value,
-          [prop]: new HousingNumber(Number(event.target.value), type)
-        });
-      },
-    "Number": (prop: keyof House) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({
-          ...value,
-          [prop]: Number(event.target.value)
-        });
-      }
-  }
+  const houseTransformers = buildTransformers(value, onChange);
 
   return (
     <div>
@@ -131,7 +101,7 @@ export function HouseInput({value, onChange}: HouseInputProps) {
             id="standard-number"
             type="number"
             value={value.insurance.monthly()}
-            onChange={transformers.HousingNumber('insurance', 'yearly')}
+            onChange={houseTransformers.HousingNumber('insurance', 'yearly')}
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
             }}
@@ -145,7 +115,7 @@ export function HouseInput({value, onChange}: HouseInputProps) {
             id="standard-number"
             type="number"
             value={value.taxes.monthly()}
-            onChange={transformers.HousingNumber('taxes', 'yearly')}
+            onChange={houseTransformers.HousingNumber('taxes', 'yearly')}
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
             }}
@@ -159,7 +129,7 @@ export function HouseInput({value, onChange}: HouseInputProps) {
             id="standard-number"
             type="number"
             value={value.repairCost.yearly()}
-            onChange={transformers.HousingNumber('repairCost', 'yearly')}
+            onChange={houseTransformers.HousingNumber('repairCost', 'yearly')}
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
             }}
@@ -173,7 +143,7 @@ export function HouseInput({value, onChange}: HouseInputProps) {
             id="standard-number"
             type="number"
             value={value.housePrice}
-            onChange={transformers.Number('housePrice')}
+            onChange={houseTransformers.Number('housePrice')}
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
             }}
@@ -187,7 +157,7 @@ export function HouseInput({value, onChange}: HouseInputProps) {
             id="standard-number"
             type="number"
             value={value.growthRate.yearly()}
-            onChange={transformers.HousingNumber('growthRate', 'yearly')}
+            onChange={houseTransformers.HousingNumber('growthRate', 'yearly')}
             InputProps={{
               endAdornment: <InputAdornment position="end">%</InputAdornment>,
 
@@ -202,7 +172,7 @@ export function HouseInput({value, onChange}: HouseInputProps) {
             id="standard-number"
             type="number"
             value={value.hoaFee.monthly()}
-            onChange={transformers.HousingNumber('hoaFee', 'monthly')}
+            onChange={houseTransformers.HousingNumber('hoaFee', 'monthly')}
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
 
@@ -223,15 +193,7 @@ type RentalInputProps = {
 };
 
 export function RentalInput({value, onChange}: RentalInputProps) {
-  const transformers = {
-    "HousingNumber": (prop: keyof Rental, type: Period) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({
-          ...value,
-          [prop]: new HousingNumber(Number(event.target.value), type)
-        });
-      }
-  };
+  const rentalTransformers = buildTransformers(value, onChange);
 
   return (
     <div>
@@ -243,7 +205,7 @@ export function RentalInput({value, onChange}: RentalInputProps) {
             id="standard-number"
             type="number"
             value={value.payment.monthly()}
-            onChange={transformers.HousingNumber('payment', 'monthly')}
+            onChange={rentalTransformers.HousingNumber('payment', 'monthly')}
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
             }}
@@ -255,7 +217,7 @@ export function RentalInput({value, onChange}: RentalInputProps) {
             id="standard-number"
             type="number"
             value={value.paymentIncrease.yearly()}
-            onChange={transformers.HousingNumber('paymentIncrease', 'yearly')}
+            onChange={rentalTransformers.HousingNumber('paymentIncrease', 'yearly')}
             InputProps={{
               endAdornment: <InputAdornment position="end">%</InputAdornment>,
 

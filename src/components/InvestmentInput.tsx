@@ -2,13 +2,13 @@ import React from 'react';
 import {
   Investment
 } from '../main'
-import {HousingNumber, Period} from '../number'
 import {
   FormControl,
   InputAdornment,
   TextField,
   FormHelperText
 } from '@material-ui/core';
+import { buildTransformers } from '../transformer';
 
 type InvestmentInputProps = {
   value: Investment,
@@ -16,22 +16,13 @@ type InvestmentInputProps = {
 };
 
 export function InvestmentInput({value, onChange}: InvestmentInputProps) {
-  const transformers = {
-    "HousingNumber": (prop: keyof Investment, type: Period) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({
-          ...value,
-          [prop]: new HousingNumber(Number(event.target.value), type)
-        });
-      },
-    "Number": (prop: keyof Investment) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({
-          ...value,
-          [prop]: Number(event.target.value)
-        });
-      }
-  }
+  const investmentTransformers = buildTransformers(value, onChange);
+  const principleTransformers = buildTransformers(value.principle, (n) => {
+    onChange({
+      ...value,
+      principle: n
+    });
+  });
 
   return (
     <div>
@@ -41,7 +32,7 @@ export function InvestmentInput({value, onChange}: InvestmentInputProps) {
           id="standard-number"
           type="number"
           value={value.principle}
-          onChange={transformers.Number('principle')}
+          onChange={principleTransformers.Number('start')}
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
@@ -55,7 +46,7 @@ export function InvestmentInput({value, onChange}: InvestmentInputProps) {
           id="standard-number"
           type="number"
           value={value.contribution.monthly()}
-          onChange={transformers.HousingNumber('contribution', 'monthly')}
+          onChange={investmentTransformers.HousingNumber('contribution', 'monthly')}
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,
           }}
@@ -69,8 +60,8 @@ export function InvestmentInput({value, onChange}: InvestmentInputProps) {
           label="Average Return"
           id="standard-number"
           type="number"
-          value={value.growthRate.yearly()}
-          onChange={transformers.HousingNumber('growthRate', 'yearly')}
+          value={value.principle.rate.yearly()}
+          onChange={principleTransformers.HousingNumber('rate', "yearly")}
           InputProps={{
             endAdornment: <InputAdornment position="end">%</InputAdornment>,
           }}
