@@ -140,9 +140,9 @@ function App() {
 
                 <TableCell align="center">{!isHouse ? percentFormat(row.rental.paymentIncrease.yearly()) : 'N/A'}</TableCell>
 
-                <TableCell align="center">{moneyFormatter.format(row.investment.principle)}</TableCell>
+                <TableCell align="center">{moneyFormatter.format(row.investment.principle.start)}</TableCell>
                 <TableCell align="center">{moneyFormatter.format(row.investment.contribution.monthly())}</TableCell>
-                <TableCell align="center">{percentFormat(row.investment.growthRate.yearly())}</TableCell>
+                <TableCell align="center">{percentFormat(row.investment.principle.rate.yearly())}</TableCell>
 
                 <TableCell align="center">{moneyFormatter.format(investmentLoss(housing, row.investment, row.years))}</TableCell>
                 <TableCell align="center">

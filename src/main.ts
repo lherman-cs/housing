@@ -3,9 +3,8 @@ import { HousingNumber, GrowableNumber } from "./number";
 export type Plan = 'house' | 'rental'
 
 export class Investment {
-  principle = 100000;
+  principle = new GrowableNumber(100000, new HousingNumber(0.06, "yearly"));
   contribution = new HousingNumber(1000, "monthly");
-  growthRate = new HousingNumber(0.06, "yearly");
 }
 
 export class Loan {
@@ -139,9 +138,9 @@ function investmentLossHouse(house: House, investment: Investment, years: number
   assert(years >= 0, "years is negative");
 
   const withoutHousing = reccuringInvestment(
-    investment.principle,
+    investment.principle.start,
     investment.contribution,
-    investment.growthRate,
+    investment.principle.rate,
     years * 12);
 
   function* invests() {
@@ -166,9 +165,9 @@ function investmentLossHouse(house: House, investment: Investment, years: number
   }
 
   const withHousing = reccuringInvestmentWithGenerator(
-    investment.principle - house.downPayment,
+    investment.principle.start - house.downPayment,
     invests(),
-    investment.growthRate
+    investment.principle.rate
   ) + houseAppreciation(house, years);
 
   return withoutHousing - withHousing;
@@ -179,9 +178,9 @@ function investmentLossRental(house: Rental, investment: Investment, years: numb
   assert(years >= 0, "years is negative");
 
   const withoutHousing = reccuringInvestment(
-    investment.principle,
+    investment.principle.start,
     investment.contribution,
-    investment.growthRate,
+    investment.principle.rate,
     years * 12);
 
   function* invests() {
@@ -195,9 +194,9 @@ function investmentLossRental(house: Rental, investment: Investment, years: numb
     }
   }
   const withHousing = reccuringInvestmentWithGenerator(
-    investment.principle - house.downPayment,
+    investment.principle.start - house.downPayment,
     invests(),
-    investment.growthRate);
+    investment.principle.rate);
   return withoutHousing - withHousing;
 }
 

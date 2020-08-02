@@ -39,15 +39,22 @@ export class HousingNumber {
   }
 }
 
+type GrowableNumberCallback = (_: number) => number;
+const growableNumberCallbackNoop: GrowableNumberCallback = (n: number): number => {
+  return n;
+}
+
 export class GrowableNumber {
   constructor(public start: number, public rate: HousingNumber) {}
 
-  *generator(): Generator<number> {
+  *generator(onBefore = growableNumberCallbackNoop, onAfter = growableNumberCallbackNoop): Generator<number> {
     let start = this.start;
+
     while (true){
+      start = onBefore(start);
       start *= (1 + this.rate.amount)
+      start = onAfter(start);
       yield start;
     }
   }
-
 }
