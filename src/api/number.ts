@@ -20,6 +20,15 @@ export class HousingNumber {
     return new HousingNumber(amount, period);
   }
 
+  to(period: Period): number {
+    switch (period) {
+      case "monthly":
+        return this.monthly();
+      case "yearly":
+        return this.yearly();
+    }
+  }
+
   monthly(): number {
     let amount = this.amount;
     if (this.period === "yearly") {
@@ -47,12 +56,12 @@ const growableNumberCallbackNoop: GrowableNumberCallback = (n: number): number =
 export class GrowableNumber {
   constructor(public start: number, public rate: HousingNumber) {}
 
-  *generator(onBefore = growableNumberCallbackNoop, onAfter = growableNumberCallbackNoop): Generator<number> {
+  *generator(period: Period, onBefore = growableNumberCallbackNoop, onAfter = growableNumberCallbackNoop): Generator<number> {
     let start = this.start;
 
     while (true){
       start = onBefore(start);
-      start *= (1 + this.rate.amount)
+      start *= (1 + this.rate.to(period));
       start = onAfter(start);
       yield start;
     }

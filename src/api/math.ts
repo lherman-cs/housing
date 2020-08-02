@@ -65,7 +65,7 @@ export function exponentialSum(base: GrowableNumber, years: number): number {
   let total = base.start;
   let year = 1;
 
-  for (const current of base.generator()) {
+  for (const current of base.generator("yearly")) {
     if (year >= years) {
       break;
     }
