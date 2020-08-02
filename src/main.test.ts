@@ -13,15 +13,15 @@ import {
   round,
   monthlyPayment
 } from "./main";
-import {HousingNumber} from "./number";
+import { HousingNumber, GrowableNumber } from "./number";
 
 
 describe('exponentialSum', function () {
   it('Happy Path', function () {
-    expect(exponentialSum(100, new HousingNumber(.00, "yearly"), 1)).toEqual(100);
-    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 1)).toEqual(100);
-    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 2)).toEqual(100 + 100 * 1.05);
-    expect(exponentialSum(100, new HousingNumber(.05, "yearly"), 3)).toEqual(100 + 100 * 1.05 + 100 * 1.05 * 1.05);
+    expect(exponentialSum(new GrowableNumber(100, new HousingNumber(.00, "yearly")), 1)).toEqual(100);
+    expect(exponentialSum(new GrowableNumber(100, new HousingNumber(.05, "yearly")), 1)).toEqual(100);
+    expect(exponentialSum(new GrowableNumber(100, new HousingNumber(.05, "yearly")), 2)).toEqual(100 + 100 * 1.05);
+    expect(exponentialSum(new GrowableNumber(100, new HousingNumber(.05, "yearly")), 3)).toEqual(100 + 100 * 1.05 + 100 * 1.05 * 1.05);
   })
 });
 

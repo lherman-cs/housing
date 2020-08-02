@@ -1,4 +1,4 @@
-import {HousingNumber} from "./number";
+import { HousingNumber, GrowableNumber } from "./number";
 
 export type Plan = 'house' | 'rental'
 
@@ -59,18 +59,23 @@ function expect(condition: boolean, message?: string) {
 
    exponentialSum computes the total amount of money you spent over a specified amount of 'years'
 */
-export function exponentialSum(base: number, rate: HousingNumber, years: number): number {
-  const ratePerYear = rate.yearly();
-  expect(ratePerYear >= 0 && ratePerYear <= 1, "rate is not between 0 and 1");
-  assert(base >= 0, "base is negative");
+export function exponentialSum(base: GrowableNumber, years: number): number {
+  expect(base.rate.yearly() >= 0 && base.rate.yearly() <= 1, "rate is not between 0 and 1");
+  assert(base.start >= 0, "base is negative");
   assert(years >= 0, "years is negative");
 
-  let total = base;
-  let curr = base;
-  for (let year = 1; year < years; year++) {
-    curr += curr * ratePerYear;
-    total += curr;
+  let total = base.start;
+  let year = 1;
+
+  for (const current of base.generator()) {
+    if (year >= years) {
+      break;
+    }
+    
+    total += current;
+    year += 1;
   }
+
   return total;
 };
 

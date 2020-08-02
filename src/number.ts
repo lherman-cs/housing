@@ -1,7 +1,7 @@
 export type Period = 'monthly' | 'yearly'
 
 export class HousingNumber {
-  constructor(private amount: number, private period: Period) {}
+  constructor(public amount: number, public period: Period) {}
 
   fromCSV(raw: any): HousingNumber {
     if (!("amount" in raw && "period" in raw)) {
@@ -37,4 +37,17 @@ export class HousingNumber {
 
     return amount;
   }
+}
+
+export class GrowableNumber {
+  constructor(public start: number, public rate: HousingNumber) {}
+
+  *generator(): Generator<number> {
+    let start = this.start;
+    while (true){
+      start *= (1 + this.rate.amount)
+      yield start;
+    }
+  }
+
 }
