@@ -48,8 +48,11 @@ function App() {
       return;
     }
 
-    const content = await file.text();
-    setRows(decodeCSV(content, new InputDialogData()));
+    const fr = new FileReader();
+    fr.onload = () => {
+      setRows(decodeCSV(fr.result as string, new InputDialogData()));
+    }
+    fr.readAsText(file);
   }
 
   const handleSubmit = (data: InputDialogData) => {
