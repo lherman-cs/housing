@@ -3,14 +3,14 @@ import {
   Housing,
   House,
   Rental
-} from '../main'
+} from '../api/math'
 import {
   FormControl,
   FormHelperText,
   InputAdornment,
   TextField
 } from '@material-ui/core';
-import { buildTransformers } from '../transformer';
+import { buildTransformers } from '../api/transformer';
 
 type HousingInputProps = {
   value: Housing,

@@ -1,14 +1,14 @@
 import React from 'react';
 import {
   Investment
-} from '../main'
+} from '../api/math'
 import {
   FormControl,
   InputAdornment,
   TextField,
   FormHelperText
 } from '@material-ui/core';
-import { buildTransformers } from '../transformer';
+import { buildTransformers } from '../api/transformer';
 
 type InvestmentInputProps = {
   value: Investment,

@@ -14,7 +14,7 @@ import {
   DialogTitle
 } from '@material-ui/core';
 import {HouseInput, RentalInput} from './HousingInput'
-import {Plan, House, Rental, Investment} from '../main';
+import {Plan, House, Rental, Investment} from '../api/math';
 import {InvestmentInput} from './InvestmentInput';
 
 const DEFAULT_PROJECTED_YEARS = 10;

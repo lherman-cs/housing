@@ -13,8 +13,8 @@ import {
 } from '@material-ui/core';
 import {Edit, Delete} from "@material-ui/icons";
 import {InputDialog, InputDialogData} from './components/InputDialog';
-import {Housing, monthlyPayment, investmentLoss} from './main';
-import {encodeCSV, decodeCSV} from './csv'
+import {Housing, monthlyPayment, investmentLoss} from './api/math';
+import {encodeCSV, decodeCSV} from './api/csv'
 
 const moneyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',

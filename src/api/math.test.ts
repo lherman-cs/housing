@@ -12,7 +12,7 @@ import {
   loanPayment,
   round,
   monthlyPayment
-} from "./main";
+} from "./math";
 import { HousingNumber, GrowableNumber } from "./number";
 
 
