@@ -70,16 +70,15 @@ describe('investmentLoss', function () {
     };
 
     const investment: Investment = {
-      principle: 124383,
+      principle: new GrowableNumber( 124383, new HousingNumber(0.07, "yearly")),
       contribution: new HousingNumber(14294, "monthly"),
-      growthRate: new HousingNumber(0.07, "yearly")
     };
 
     const loss = investmentLoss(rental, investment, 2);
     const expectedWithoutHousing = reccuringInvestment(
       investment.principle.start,
       investment.contribution,
-      investment.principle.start.rate,
+      investment.principle.rate,
       24
     );
     const invest = function* (rental: Rental, investment: Investment) {
@@ -93,7 +92,7 @@ describe('investmentLoss', function () {
     const expectedWithHousing = reccuringInvestmentWithGenerator(
       investment.principle.start - rental.downPayment,
       invest(rental, investment),
-      investment.principle.start.rate
+      investment.principle.rate
     );
     expect(loss).toEqual(expectedWithoutHousing - expectedWithHousing);
   });
@@ -120,16 +119,15 @@ describe('investmentLoss', function () {
     };
 
     const investment: Investment = {
-      principle: 124383,
-      contribution: new HousingNumber(14294, "monthly"),
-      growthRate: new HousingNumber(0.07, "yearly")
+      principle: new GrowableNumber(124383, new HousingNumber(0.07, "yearly")),
+      contribution: new HousingNumber(14294, "monthly")
     };
 
     const loss = investmentLoss(house, investment, 2);
     const expectedWithoutHousing = reccuringInvestment(
       investment.principle.start,
       investment.contribution,
-      investment.principle.start.rate,
+      investment.principle.rate,
       24
     );
     const expectedWithHousing = reccuringInvestment(
@@ -144,7 +142,7 @@ describe('investmentLoss', function () {
         - house.repairCost.monthly(),
         "monthly"
       ),
-      investment.principle.start.rate,
+      investment.principle.rate,
       24
     ) + houseAppreciation(house, 2);
     expect(loss).toEqual(expectedWithoutHousing - expectedWithHousing);
@@ -172,16 +170,15 @@ describe('investmentLoss', function () {
     };
 
     const investment: Investment = {
-      principle: 124383,
-      contribution: new HousingNumber(14294, "monthly"),
-      growthRate: new HousingNumber(0.07, "yearly")
+      principle: new GrowableNumber(124383,new HousingNumber(0.07, "yearly")),
+      contribution: new HousingNumber(14294, "monthly")
     };
 
     const loss = investmentLoss(house, investment, 2);
     const expectedWithoutHousing = reccuringInvestment(
       investment.principle.start,
       investment.contribution,
-      investment.principle.start.rate,
+      investment.principle.rate,
       24
     );
 
@@ -197,13 +194,13 @@ describe('investmentLoss', function () {
     const expectedWithHousingFirstYear = reccuringInvestment(
       investment.principle.start - house.downPayment,
       new HousingNumber(monthlyInvestment, "monthly"),
-      investment.principle.start.rate,
+      investment.principle.rate,
       12
     );
     const expectedWithHousingSecondYear = reccuringInvestment(
       expectedWithHousingFirstYear,
       new HousingNumber(monthlyInvestment + rentIncome * house.chargeForRoomIncrease.yearly(), "monthly"),
-      investment.principle.start.rate,
+      investment.principle.rate,
       12
     ) + houseAppreciation(house, 2);
 
