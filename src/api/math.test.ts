@@ -112,9 +112,8 @@ describe('investmentLoss', function () {
       insurance: new HousingNumber(85, "monthly"),
       taxes: new HousingNumber(202, "monthly"),
       loan: {
-        interestRate: new HousingNumber(.03, "yearly"),
         term: 30,
-        principle: 300000
+        principle: new GrowableNumber( 300000, new HousingNumber(.03, "yearly"))
       }
     };
 
@@ -163,9 +162,8 @@ describe('investmentLoss', function () {
       insurance: new HousingNumber(85, "monthly"),
       taxes: new HousingNumber(202, "monthly"),
       loan: {
-        interestRate: new HousingNumber(.03, "yearly"),
         term: 30,
-        principle: 300000
+        principle: new GrowableNumber( 300000, new HousingNumber(.03, "yearly"))
       }
     };
 
@@ -224,9 +222,8 @@ describe('houseAppreciation', function () {
       insurance: new HousingNumber(85, "monthly"),
       taxes: new HousingNumber(202, "monthly"),
       loan: {
-        interestRate: new HousingNumber(.03, "yearly"),
         term: 30,
-        principle: 300000
+        principle: new GrowableNumber( 300000, new HousingNumber(.03, "yearly"))
       }
     };
 
@@ -242,40 +239,35 @@ describe('houseAppreciation', function () {
 describe('loanPayment', function () {
   it('Happy Path', function () {
     let loan: Loan = {
-      interestRate: new HousingNumber(.03, "yearly"),
       term: 30,
-      principle: 10000
+      principle: new GrowableNumber( 10000, new HousingNumber(.03, "yearly"))
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(42.16);
 
     loan = {
-      interestRate: new HousingNumber(.03, "yearly"),
       term: 7,
-      principle: 10000
+      principle: new GrowableNumber( 10000, new HousingNumber(.03, "yearly"))
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(132.13);
 
     loan = {
-      interestRate: new HousingNumber(.045, "yearly"),
       term: 15,
-      principle: 165000
+      principle: new GrowableNumber( 165000, new HousingNumber(.045, "yearly"))
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(1262.24);
 
     loan = {
-      interestRate: new HousingNumber(.03, "yearly"),
-      principle: 9000,
+      principle: new GrowableNumber( 9000, new HousingNumber(.03, "yearly")),
       term: 30
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(37.94);
 
     loan = {
-      interestRate: new HousingNumber(.03, "yearly"),
-      principle: 181500,
+      principle: new GrowableNumber( 181500, new HousingNumber(.03, "yearly")),
       term: 30
     };
 
@@ -308,9 +300,8 @@ describe('round', function () {
 describe('loanPrinciple', function () {
   it('Simple Happy Path', function () {
     const loan: Loan = {
-      interestRate: new HousingNumber(.03, "yearly"),
-      principle: 9000,
-      term: 3
+      term: 3,
+      principle: new GrowableNumber( 9000, new HousingNumber(.03, "yearly"))
     };
     expect(loanPrinciple(loan, 30)).toBeCloseTo(0, 0);
     expect(loanPrinciple(loan, 1)).toBeCloseTo(6089, 0);
@@ -320,9 +311,8 @@ describe('loanPrinciple', function () {
 
   it('Happy Path', function () {
     const loan: Loan = {
-      interestRate: new HousingNumber(.03, "yearly"),
-      principle: 181500,
-      term: 30
+      term: 30,
+      principle: new GrowableNumber( 181500, new HousingNumber(.03, "yearly"))
     };
     // We expect the principle to be within +/- 1 of the expected principle
     //   This is due to small variations in the way we and calulators like
@@ -349,9 +339,8 @@ describe('monthlyPayment', function () {
       insurance: new HousingNumber(85, "monthly"),
       taxes: new HousingNumber(202, "monthly"),
       loan: {
-        interestRate: new HousingNumber(.03, "yearly"),
         term: 30,
-        principle: 300000
+        principle: new GrowableNumber( 300000, new HousingNumber(.03, "yearly"))
       }
     };
     expect(monthlyPayment(house)).toEqual(

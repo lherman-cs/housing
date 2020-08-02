@@ -8,9 +8,8 @@ export class Investment {
 }
 
 export class Loan {
-  term = 0;
-  interestRate = new HousingNumber(0.03, "yearly");
-  principle = 200000;
+  term = 30;
+  principle = new GrowableNumber(200000, new HousingNumber(0.03, "yearly"));
 }
 
 export class Housing {
@@ -206,10 +205,10 @@ export function houseAppreciation(house: House, years: number) {
 
 export function loanPayment(loan: Loan) {
   const numPayments = 12 * loan.term;
-  const rate = loan.interestRate.monthly()
+  const rate = loan.principle.rate.monthly()
   const top = rate * Math.pow(1 + rate, numPayments)
   const bottom = Math.pow(1 + rate, numPayments) - 1
-  return new HousingNumber(loan.principle * top / bottom, "monthly")
+  return new HousingNumber(loan.principle.start * top / bottom, "monthly")
 }
 
 export function round(n: number) {
@@ -217,11 +216,11 @@ export function round(n: number) {
 }
 
 export function loanPrinciple(loan: Loan, years: number) {
-  let loanAmount = loan.principle;
+  let loanAmount = loan.principle.start;
   const months = years * 12;
   const payment = loanPayment(loan).monthly()
   for (let month = 0; month < months; month++) {
-    const interest = round(loanAmount * loan.interestRate.monthly())
+    const interest = round(loanAmount * loan.principle.rate.monthly())
     const principle = payment - interest
     loanAmount -= principle;
     if (loanAmount < 0) {loanAmount = 0; month = months;}
