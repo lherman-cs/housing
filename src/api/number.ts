@@ -46,6 +46,10 @@ export class HousingNumber {
 
     return amount;
   }
+
+  clone(): HousingNumber {
+    return new HousingNumber(this.amount, this.period);
+  }
 }
 
 type GrowableNumberCallback = (_: number) => number;
@@ -59,11 +63,15 @@ export class GrowableNumber {
   *generator(period: Period, onBefore = growableNumberCallbackNoop, onAfter = growableNumberCallbackNoop): Generator<number> {
     let start = this.start;
 
-    while (true){
+    while (true) {
       start = onBefore(start);
       start *= (1 + this.rate.to(period));
       start = onAfter(start);
       yield start;
     }
+  }
+
+  clone(): GrowableNumber {
+    return new GrowableNumber(this.start, this.rate);
   }
 }
