@@ -8,7 +8,7 @@ import {
   TextField,
   FormHelperText
 } from '@material-ui/core';
-import { buildTransformers } from '../api/transformer';
+import {buildTransformers} from '../api/transformer';
 
 type InvestmentInputProps = {
   value: Investment,
@@ -31,7 +31,7 @@ export function InvestmentInput({value, onChange}: InvestmentInputProps) {
           label="Investment Principle"
           id="standard-number"
           type="number"
-          value={value.principle}
+          value={value.principle.start}
           onChange={principleTransformers.Number('start')}
           InputProps={{
             startAdornment: <InputAdornment position="start">$</InputAdornment>,

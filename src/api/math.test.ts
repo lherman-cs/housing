@@ -13,7 +13,7 @@ import {
   round,
   monthlyPayment
 } from "./math";
-import { HousingNumber, GrowableNumber } from "./number";
+import {HousingNumber, GrowableNumber} from "./number";
 
 
 describe('exponentialSum', function () {
@@ -70,7 +70,7 @@ describe('investmentLoss', function () {
     };
 
     const investment: Investment = {
-      principle: new GrowableNumber( 124383, new HousingNumber(0.07, "yearly")),
+      principle: new GrowableNumber(124383, new HousingNumber(0.07, "yearly")),
       contribution: new HousingNumber(14294, "monthly"),
     };
 
@@ -111,9 +111,11 @@ describe('investmentLoss', function () {
       hoaFee: new HousingNumber(255, "monthly"),
       insurance: new HousingNumber(85, "monthly"),
       taxes: new HousingNumber(202, "monthly"),
+      buyClosingCosts: .04,
+      sellClosingCosts: .06,
       loan: {
         term: 30,
-        principle: new GrowableNumber( 300000, new HousingNumber(.03, "yearly"))
+        principle: new GrowableNumber(300000, new HousingNumber(.03, "yearly"))
       }
     };
 
@@ -130,7 +132,7 @@ describe('investmentLoss', function () {
       24
     );
     const expectedWithHousing = reccuringInvestment(
-      investment.principle.start - house.downPayment,
+      investment.principle.start - house.downPayment - house.housePrice * house.buyClosingCosts,
       new HousingNumber(
         investment.contribution.monthly()
         - loanPayment(house.loan).monthly()
@@ -143,7 +145,7 @@ describe('investmentLoss', function () {
       ),
       investment.principle.rate,
       24
-    ) + houseAppreciation(house, 2);
+    ) + houseAppreciation(house, 2) * (1 - house.sellClosingCosts);
     expect(loss).toEqual(expectedWithoutHousing - expectedWithHousing);
   });
 
@@ -161,14 +163,16 @@ describe('investmentLoss', function () {
       hoaFee: new HousingNumber(255, "monthly"),
       insurance: new HousingNumber(85, "monthly"),
       taxes: new HousingNumber(202, "monthly"),
+      buyClosingCosts: .04,
+      sellClosingCosts: .06,
       loan: {
         term: 30,
-        principle: new GrowableNumber( 300000, new HousingNumber(.03, "yearly"))
+        principle: new GrowableNumber(300000, new HousingNumber(.03, "yearly"))
       }
     };
 
     const investment: Investment = {
-      principle: new GrowableNumber(124383,new HousingNumber(0.07, "yearly")),
+      principle: new GrowableNumber(124383, new HousingNumber(0.07, "yearly")),
       contribution: new HousingNumber(14294, "monthly")
     };
 
@@ -190,7 +194,7 @@ describe('investmentLoss', function () {
       - house.repairCost.monthly()
       + rentIncome;
     const expectedWithHousingFirstYear = reccuringInvestment(
-      investment.principle.start - house.downPayment,
+      investment.principle.start - house.downPayment - house.housePrice * house.buyClosingCosts,
       new HousingNumber(monthlyInvestment, "monthly"),
       investment.principle.rate,
       12
@@ -200,7 +204,7 @@ describe('investmentLoss', function () {
       new HousingNumber(monthlyInvestment + rentIncome * house.chargeForRoomIncrease.yearly(), "monthly"),
       investment.principle.rate,
       12
-    ) + houseAppreciation(house, 2);
+    ) + houseAppreciation(house, 2) * (1 - house.sellClosingCosts);
 
     expect(loss).toEqual(expectedWithoutHousing - expectedWithHousingSecondYear);
   });
@@ -223,7 +227,7 @@ describe('houseAppreciation', function () {
       taxes: new HousingNumber(202, "monthly"),
       loan: {
         term: 30,
-        principle: new GrowableNumber( 300000, new HousingNumber(.03, "yearly"))
+        principle: new GrowableNumber(300000, new HousingNumber(.03, "yearly"))
       }
     };
 
@@ -240,34 +244,34 @@ describe('loanPayment', function () {
   it('Happy Path', function () {
     let loan: Loan = {
       term: 30,
-      principle: new GrowableNumber( 10000, new HousingNumber(.03, "yearly"))
+      principle: new GrowableNumber(10000, new HousingNumber(.03, "yearly"))
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(42.16);
 
     loan = {
       term: 7,
-      principle: new GrowableNumber( 10000, new HousingNumber(.03, "yearly"))
+      principle: new GrowableNumber(10000, new HousingNumber(.03, "yearly"))
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(132.13);
 
     loan = {
       term: 15,
-      principle: new GrowableNumber( 165000, new HousingNumber(.045, "yearly"))
+      principle: new GrowableNumber(165000, new HousingNumber(.045, "yearly"))
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(1262.24);
 
     loan = {
-      principle: new GrowableNumber( 9000, new HousingNumber(.03, "yearly")),
+      principle: new GrowableNumber(9000, new HousingNumber(.03, "yearly")),
       term: 30
     };
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(37.94);
 
     loan = {
-      principle: new GrowableNumber( 181500, new HousingNumber(.03, "yearly")),
+      principle: new GrowableNumber(181500, new HousingNumber(.03, "yearly")),
       term: 30
     };
 
@@ -301,7 +305,7 @@ describe('loanPrinciple', function () {
   it('Simple Happy Path', function () {
     const loan: Loan = {
       term: 3,
-      principle: new GrowableNumber( 9000, new HousingNumber(.03, "yearly"))
+      principle: new GrowableNumber(9000, new HousingNumber(.03, "yearly"))
     };
     expect(loanPrinciple(loan, 30)).toBeCloseTo(0, 0);
     expect(loanPrinciple(loan, 1)).toBeCloseTo(6089, 0);
@@ -312,7 +316,7 @@ describe('loanPrinciple', function () {
   it('Happy Path', function () {
     const loan: Loan = {
       term: 30,
-      principle: new GrowableNumber( 181500, new HousingNumber(.03, "yearly"))
+      principle: new GrowableNumber(181500, new HousingNumber(.03, "yearly"))
     };
     // We expect the principle to be within +/- 1 of the expected principle
     //   This is due to small variations in the way we and calulators like
@@ -340,7 +344,7 @@ describe('monthlyPayment', function () {
       taxes: new HousingNumber(202, "monthly"),
       loan: {
         term: 30,
-        principle: new GrowableNumber( 300000, new HousingNumber(.03, "yearly"))
+        principle: new GrowableNumber(300000, new HousingNumber(.03, "yearly"))
       }
     };
     expect(monthlyPayment(house)).toEqual(

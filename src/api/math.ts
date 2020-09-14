@@ -1,4 +1,4 @@
-import { HousingNumber, GrowableNumber } from "./number";
+import {HousingNumber, GrowableNumber} from "./number";
 
 export type Plan = 'house' | 'rental'
 
@@ -30,6 +30,8 @@ export class House extends Housing {
   loan = new Loan();
   insurance = new HousingNumber(85, "monthly");
   taxes = new HousingNumber(202, "monthly");
+  buyClosingCosts = .04;
+  sellClosingCosts = .06;
 }
 
 export class Rental extends Housing {
@@ -69,7 +71,7 @@ export function exponentialSum(base: GrowableNumber, years: number): number {
     if (year >= years) {
       break;
     }
-    
+
     total += current;
     year += 1;
   }
@@ -163,11 +165,13 @@ function investmentLossHouse(house: House, investment: Investment, years: number
     }
   }
 
-  const withHousing = reccuringInvestmentWithGenerator(
-    investment.principle.start - house.downPayment,
+  const investmentValue = reccuringInvestmentWithGenerator(
+    investment.principle.start - house.downPayment - house.housePrice * house.buyClosingCosts,
     invests(),
     investment.principle.rate
-  ) + houseAppreciation(house, years);
+  );
+  const houseValue = houseAppreciation(house, years) * (1 - house.sellClosingCosts);
+  const withHousing = investmentValue + houseValue;
 
   return withoutHousing - withHousing;
 }

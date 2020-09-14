@@ -10,7 +10,7 @@ import {
   InputAdornment,
   TextField
 } from '@material-ui/core';
-import { buildTransformers } from '../api/transformer';
+import {buildTransformers} from '../api/transformer';
 
 type HousingInputProps = {
   value: Housing,
@@ -149,6 +149,34 @@ export function HouseInput({value, onChange}: HouseInputProps) {
             }}
           />
           <FormHelperText>How much you expect to pay for the home</FormHelperText>
+        </FormControl>
+        <br />
+        <FormControl variant="filled">
+          <TextField
+            label="Buying Closing Costs"
+            id="standard-number"
+            type="number"
+            value={value.buyClosingCosts}
+            onChange={houseTransformers.Number('buyClosingCosts')}
+            InputProps={{
+              endAdornment: <InputAdornment position="end">%</InputAdornment>,
+            }}
+          />
+          <FormHelperText>How much you expect to pay for closing costs when buying the home(percent)</FormHelperText>
+        </FormControl>
+        <br />
+        <FormControl variant="filled">
+          <TextField
+            label="Selling Closing Costs"
+            id="standard-number"
+            type="number"
+            value={value.sellClosingCosts}
+            onChange={houseTransformers.Number('sellClosingCosts')}
+            InputProps={{
+              endAdornment: <InputAdornment position="end">%</InputAdornment>,
+            }}
+          />
+          <FormHelperText>How much you expect to pay for closing costs when selling the home (percent)</FormHelperText>
         </FormControl>
         <br />
         <FormControl variant="filled">
