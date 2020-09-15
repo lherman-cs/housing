@@ -39,6 +39,7 @@ export class Housing {
   chargeForRoomIncrease = new HousingNumber(0.03, "yearly");
   extraBedrooms = 0;
   utilityCost = new HousingNumber(100, "monthly");
+  insurance = new HousingNumber(85, "monthly");
 
   clone(): Housing {
     const housing = new Housing();
@@ -53,7 +54,6 @@ export class House extends Housing {
   growthRate = new HousingNumber(0.04, "yearly");
   hoaFee = new HousingNumber(250, "monthly");
   loan = new Loan();
-  insurance = new HousingNumber(85, "monthly");
   buyClosingCosts = .04;
   sellClosingCosts = .06;
 
@@ -195,6 +195,20 @@ function housingExpenses(): CalculateFn {
     const housing = state.data.housing;
     let fn: CalculateFn | null;
 
+    const rentIncome = housing.chargeForRoom.monthly() * housing.extraBedrooms;
+    state.netWorth +=
+      rentIncome
+      - housing.insurance.monthly()
+      - housing.utilityCost.monthly();
+
+    if (month % 12 === 0) {
+      const increaseByInflation = increaseByRate(state.data.inflation.yearly());
+
+      housing.chargeForRoom.update("monthly", increaseByRate(housing.chargeForRoomIncrease.yearly()));
+      housing.insurance.update("monthly", increaseByInflation);
+      housing.utilityCost.update("monthly", increaseByInflation);
+    }
+
     switch (housing.plan) {
       case "house":
         fn = houseExpenses(housing as House);
@@ -206,20 +220,17 @@ function housingExpenses(): CalculateFn {
         throw new Error("Unsupported plan");
     }
 
+
     return fn(state, month);
   }
 }
 
 function houseExpenses(house: House): CalculateFn {
   return (state: State, month: number): State => {
-    const rentIncome = house.chargeForRoom.monthly() * house.extraBedrooms;
     const expense =
       - loanPayment(house.loan).monthly()
-      - house.insurance.monthly()
-      - house.utilityCost.monthly()
       - house.repairCost.monthly()
       - house.hoaFee.monthly()
-      + rentIncome;
 
     const newState = state.clone();
     newState.netWorth += expense;
@@ -230,9 +241,6 @@ function houseExpenses(house: House): CalculateFn {
     if (month % 12 === 0) {
       const increaseByInflation = increaseByRate(newState.data.inflation.yearly());
 
-      newHouse.chargeForRoom.update("monthly", increaseByRate(house.chargeForRoomIncrease.yearly()));
-      newHouse.insurance.update("monthly", increaseByInflation);
-      newHouse.utilityCost.update("monthly", increaseByInflation);
       newHouse.repairCost.update("monthly", increaseByInflation);
       newHouse.hoaFee.update("monthly", increaseByInflation);
     }
@@ -243,14 +251,12 @@ function houseExpenses(house: House): CalculateFn {
 
 function rentalExpenses(rental: Rental): CalculateFn {
   return (state: State, month: number): State => {
-    const expense = rental.utilityCost.monthly() - rental.payment.monthly();
     const newState = state.clone();
-    newState.netWorth += expense;
+    newState.netWorth += rental.payment.monthly();
 
     if (month % 12 === 0) {
       const newRental = newState.data.housing as Rental;
-      const newMonthlyPayment = (1 + rental.payment.monthly()) * rental.paymentIncrease.yearly();
-      newRental.payment = new HousingNumber(newMonthlyPayment, "monthly");
+      newRental.payment.update("monthly", increaseByRate(rental.paymentIncrease.yearly()));
     }
 
     return newState;
