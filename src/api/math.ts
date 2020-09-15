@@ -78,11 +78,12 @@ export class Data {
   housing: Housing = new House();
   investment = new Investment();
   taxes = new Tax();
+  inflation = new HousingNumber(0.02, "yearly");
 }
+
 export class State {
   data = new Data();
   netWorth = 0;
-  monthlyPayment = 0;
 
   clone() {
     const state = new State();
@@ -131,30 +132,39 @@ export function exponentialSum(base: GrowableNumber, years: number): number {
   return total;
 };
 
-export function* calculate(data: Data, months: number): Generator<State> {
-  const calculateFns: CalculateFn[] = [
+export const increaseByRate = (rate: number) => (amount: number) => (1 + rate) * amount;
+
+function chainCalculations(...fns: CalculateFn[]): CalculateFn {
+  return (state: State, month: number): State => {
+    for (const fn of fns) {
+      state = fn(state, month)
+    }
+
+    return state;
+  }
+}
+
+export function calculateMonth(): CalculateFn {
+  return chainCalculations(
     reccuringInvestment(),
     housingExpenses(),
-  ];
+  )
+}
 
-  const postCalculateFns: CalculateFn[] = [
-    monthlyPayment(),
-  ];
+export function postCalculateMonth(): CalculateFn {
+  return chainCalculations(/* TODO: Add calculation steps */);
+}
 
+export function* calculate(data: Data, months: number): Generator<State> {
   let state = new State();
   state.data = data;
 
+  const fn = calculateMonth();
+  const postFn = postCalculateMonth();
+
   for (let month = 1; month <= months; month++) {
-    for (const fn of calculateFns) {
-      state = fn(state, month);
-    }
-
-    let snapState = state.clone();
-    for (const fn of postCalculateFns) {
-      snapState = fn(snapState, month);
-    }
-
-    yield snapState
+    state = fn(state, month);
+    yield postFn(state, month);
   }
 }
 
@@ -214,12 +224,17 @@ function houseExpenses(house: House): CalculateFn {
     const newState = state.clone();
     newState.netWorth += expense;
 
-    if (month % 12 === 0) {
-      const newHouse = newState.data.housing as House;
-      const newChargeForRoom = (1 + house.chargeForRoomIncrease.yearly()) * house.chargeForRoom.monthly();
-      newHouse.chargeForRoom = new HousingNumber(newChargeForRoom, "monthly");
+    const newHouse = newState.data.housing as House;
+    newHouse.housePrice = principleAfterInterest(newHouse.housePrice, newHouse.growthRate.monthly());
 
-      newHouse.housePrice = principleAfterInterest(newHouse.housePrice, newHouse.growthRate.yearly());
+    if (month % 12 === 0) {
+      const increaseByInflation = increaseByRate(newState.data.inflation.yearly());
+
+      newHouse.chargeForRoom.update("monthly", increaseByRate(house.chargeForRoomIncrease.yearly()));
+      newHouse.insurance.update("monthly", increaseByInflation);
+      newHouse.utilityCost.update("monthly", increaseByInflation);
+      newHouse.repairCost.update("monthly", increaseByInflation);
+      newHouse.hoaFee.update("monthly", increaseByInflation);
     }
 
     return newState;
@@ -265,37 +280,4 @@ export function loanPrinciple(loan: Loan, years: number) {
     if (loanAmount < 0) {loanAmount = 0; month = months;}
   }
   return Math.round(loanAmount);
-}
-
-export function monthlyPayment(): CalculateFn {
-  return (state: State, month: number): State => {
-    const housing = state.data.housing;
-    const isHouse = housing.plan === 'house';
-    const fn = isHouse ? monthlyPaymentHouse(housing as House) : monthlyPaymentRental(housing as Rental);
-    return fn(state, month);
-  }
-}
-
-function monthlyPaymentRental(rental: Rental): CalculateFn {
-  return (state: State, _: number): State => {
-    const newState = state.clone();
-    newState.monthlyPayment += rental.payment.monthly() + rental.utilityCost.monthly();
-
-    return newState;
-  }
-}
-
-function monthlyPaymentHouse(house: House): CalculateFn {
-  return (state: State, _: number): State => {
-    const taxes = state.data.taxes;
-    const newState = state.clone();
-    newState.monthlyPayment += loanPayment(house.loan).monthly()
-      + house.hoaFee.monthly()
-      + house.insurance.monthly()
-      + taxes.property.monthly()
-      + house.repairCost.monthly()
-      + house.utilityCost.monthly()
-
-    return newState;
-  }
 }

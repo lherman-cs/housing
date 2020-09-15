@@ -47,6 +47,11 @@ export class HousingNumber {
     return amount;
   }
 
+  update(period: Period, fn: (amount: number) => number) {
+    const amount = this.to(period);
+    this.amount = fn(amount);
+  }
+
   clone(): HousingNumber {
     return new HousingNumber(this.amount, this.period);
   }
