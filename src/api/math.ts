@@ -7,6 +7,11 @@ export type TaxFilingStatus = 'individual' | 'joint'
 export class Investment {
   principle = new GrowableNumber(100000, new HousingNumber(0.06, "yearly"));
   contribution = new HousingNumber(1000, "monthly");
+
+  clone() {
+    const investment = new Investment();
+    return copy(this, investment);
+  }
 }
 
 export class Tax {
@@ -79,6 +84,11 @@ export class Data {
   investment = new Investment();
   taxes = new Tax();
   inflation = new HousingNumber(0.02, "yearly");
+
+  clone() {
+    const data = new Data();
+    return copy(this, data);
+  }
 }
 
 export class State {
@@ -92,6 +102,18 @@ export class State {
 }
 
 export type CalculateFn = (state: State, month: number) => State;
+
+export function log(fn: CalculateFn): CalculateFn {
+  return (state: State, month: number): State => {
+    const space = 4;
+    console.debug("Old State");
+    console.debug(JSON.stringify(state, null, space));
+    state = fn(state, month);
+    console.debug("New State");
+    console.debug(JSON.stringify(state, null, space));
+    return state;
+  }
+}
 
 function assert(condition: boolean, message?: string) {
   if (!condition) {
@@ -184,7 +206,7 @@ export function reccuringInvestment(): CalculateFn {
     const newPrinciple = principleAfterInterest(principle, rate.monthly()) + contribution.monthly();
     const newState = state.clone();
     newState.data.investment.principle.start = newPrinciple;
-    newState.netWorth = newPrinciple - principle;
+    newState.netWorth += newPrinciple - principle;
 
     return newState;
   };
