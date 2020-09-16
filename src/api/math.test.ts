@@ -50,4 +50,27 @@ describe('reccuringInvestment', function () {
     const newState = log(reccuringInvestment())(state, 3);
     expect(newState).toEqual(expectedState)
   })
+
+  it('should work with multi months', function () {
+    const state = new State();
+    const investment = new Investment();
+    investment.contribution.update("monthly", _ => 1000);
+    investment.principle.start = 0;
+    investment.principle.rate.update("monthly", _ => .05);
+    state.data.investment = investment;
+
+    const expectedState1 = state.clone();
+    expectedState1.netWorth = 1000;
+    expectedState1.data.investment.principle.start = 1000;
+
+    const newState1 = log(reccuringInvestment())(state, 0);
+    expect(newState1).toEqual(expectedState1)
+
+    const expectedState2 = expectedState1.clone();
+    expectedState2.netWorth = 2050;
+    expectedState2.data.investment.principle.start = 2050;
+
+    const newState2 = log(reccuringInvestment())(newState1, 1);
+    expect(newState2).toEqual(expectedState2)
+  })
 })
