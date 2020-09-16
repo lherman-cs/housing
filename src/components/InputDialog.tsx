@@ -10,7 +10,7 @@ import {
   DialogContent,
   DialogTitle
 } from '@material-ui/core';
-import {Data, House} from '../api/math';
+import {Data, House, Plan, Housing} from '../api/math';
 import {buildTransformers} from '../api/transformer';
 import {HousingNumber, Period} from '../api/number';
 import {copy} from '../api/copy';
@@ -44,7 +44,7 @@ function generateForm<T>(form: DataForm<T>, data: T, onChange: (_: T) => void): 
     (Object.keys(data) as Array<keyof T>)
       .filter(key => typeof data[key] !== 'function')
       .filter(key => form[key])
-      .map(key => {
+      .forEach(key => {
         const value = data[key];
         if (typeof value === "string"
           || value instanceof String
@@ -100,6 +100,7 @@ function generateForm<T>(form: DataForm<T>, data: T, onChange: (_: T) => void): 
 
 export class InputDialogData extends Data {
   label = "";
+  plan: Plan = "house";
 
   clone() {
     const data = new InputDialogData();
@@ -155,7 +156,7 @@ const BASE_FORM: Omit<DataForm<InputDialogData>, "housing"> = {
 const HOUSE_FORM: DataForm<InputDialogData> = {
   ...BASE_FORM,
   housing: {
-  } as DataForm<House>,
+  } as DataForm<Housing>,
 };
 
 export function InputDialog({initialData, onSubmit, onClose, open}: InputDialogProps) {

@@ -37,16 +37,24 @@ export class Loan {
   }
 }
 
-export abstract class Housing {
+export class Housing {
+  plan: Plan = "house";
   downPayment = 50000;
   chargeForRoom = new HousingNumber(600, "monthly");
   chargeForRoomIncrease = new HousingNumber(0.03, "yearly");
   extraBedrooms = 0;
   utilityCost = new HousingNumber(100, "monthly");
   insurance = new HousingNumber(85, "monthly");
+  house = new House();
+  rental = new Rental();
+
+  clone(): Housing {
+    const housing = new Housing();
+    return copy(this, housing);
+  }
 }
 
-export class House extends Housing {
+export class House {
   repairCost = new HousingNumber(500, "yearly");
   housePrice = 250000;
   growthRate = new HousingNumber(0.04, "yearly");
@@ -61,7 +69,7 @@ export class House extends Housing {
   }
 }
 
-export class Rental extends Housing {
+export class Rental {
   paymentIncrease = new HousingNumber(0.04, "yearly");
   payment = new HousingNumber(900, "monthly");
 
@@ -72,7 +80,7 @@ export class Rental extends Housing {
 }
 
 export class Data {
-  housing: Housing = new House();
+  housing: Housing = new Housing();
   investment = new Investment();
   taxes = new Tax();
   inflation = new HousingNumber(0.02, "yearly");
@@ -223,12 +231,15 @@ export function housingExpenses(): CalculateFn {
       housing.utilityCost.update("monthly", increaseByInflation);
     }
 
-    if (housing instanceof House) {
-      fn = houseExpenses(housing as House);
-    } else if (housing instanceof Rental) {
-      fn = rentalExpenses(housing as Rental);
-    } else {
-      throw new Error("Unsupported plan");
+    switch (housing.plan) {
+      case "house":
+        fn = houseExpenses(housing.house);
+        break;
+      case "rental":
+        fn = rentalExpenses(housing.rental);
+        break;
+      default:
+        throw new Error("Unsupported plan");
     }
 
     return fn(state, month);
@@ -245,7 +256,7 @@ function houseExpenses(house: House): CalculateFn {
     const newState = state.clone();
     newState.netWorth += expense;
 
-    const newHouse = newState.data.housing as House;
+    const newHouse = newState.data.housing.house;
     newHouse.housePrice = principleAfterInterest(newHouse.housePrice, newHouse.growthRate.monthly());
 
     if (month % 12 === 0) {
@@ -265,7 +276,7 @@ function rentalExpenses(rental: Rental): CalculateFn {
     newState.netWorth += rental.payment.monthly();
 
     if (month % 12 === 0) {
-      const newRental = newState.data.housing as Rental;
+      const newRental = newState.data.housing.rental;
       newRental.payment.update("monthly", increaseByRate(rental.paymentIncrease.yearly()));
     }
 

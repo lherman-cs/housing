@@ -13,6 +13,7 @@ import {
 } from '@material-ui/core';
 import {Edit, Delete} from "@material-ui/icons";
 import {InputDialog, InputDialogData} from './components/InputDialog';
+import {NetWorthTrendline} from './components/NetWorthTrendline';
 import {encodeCSV, decodeCSV} from './api/csv'
 
 function App() {
@@ -76,12 +77,15 @@ function App() {
 
   return (
     <div>
+      <div style={{height: '40vh', width: '100%'}}>
+        <NetWorthTrendline data={rows}></NetWorthTrendline>
+      </div>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell rowSpan={10} align="center">Label</TableCell>
-              <TableCell rowSpan={2} align="center">Actions</TableCell>
+              <TableCell align="center">Label</TableCell>
+              <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
