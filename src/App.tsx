@@ -49,10 +49,10 @@ function App() {
     if (index < 0 || index >= rows.length) {
       setRows([
         ...rows,
-        data
+        data.clone()
       ]);
     } else {
-      rows[index] = data;
+      rows[index] = data.clone();
       setRows([...rows]);
     }
     setOpen(false);

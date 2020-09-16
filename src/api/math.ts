@@ -273,7 +273,7 @@ function houseExpenses(house: House): CalculateFn {
 function rentalExpenses(rental: Rental): CalculateFn {
   return (state: State, month: number): State => {
     const newState = state.clone();
-    newState.netWorth += rental.payment.monthly();
+    newState.netWorth -= rental.payment.monthly();
 
     if (month % 12 === 0) {
       const newRental = newState.data.housing.rental;
