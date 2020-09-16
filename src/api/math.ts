@@ -37,23 +37,16 @@ export class Loan {
   }
 }
 
-export class Housing {
-  plan: Plan = "house";
+export abstract class Housing {
   downPayment = 50000;
   chargeForRoom = new HousingNumber(600, "monthly");
   chargeForRoomIncrease = new HousingNumber(0.03, "yearly");
   extraBedrooms = 0;
   utilityCost = new HousingNumber(100, "monthly");
   insurance = new HousingNumber(85, "monthly");
-
-  clone(): Housing {
-    const housing = new Housing();
-    return copy(this, housing);
-  }
 }
 
 export class House extends Housing {
-  plan = "house" as Plan;
   repairCost = new HousingNumber(500, "yearly");
   housePrice = 250000;
   growthRate = new HousingNumber(0.04, "yearly");
@@ -69,7 +62,6 @@ export class House extends Housing {
 }
 
 export class Rental extends Housing {
-  plan = "rental" as Plan;
   paymentIncrease = new HousingNumber(0.04, "yearly");
   payment = new HousingNumber(900, "monthly");
 
@@ -231,17 +223,13 @@ export function housingExpenses(): CalculateFn {
       housing.utilityCost.update("monthly", increaseByInflation);
     }
 
-    switch (housing.plan) {
-      case "house":
-        fn = houseExpenses(housing as House);
-        break;
-      case "rental":
-        fn = rentalExpenses(housing as Rental);
-        break;
-      default:
-        throw new Error("Unsupported plan");
+    if (housing instanceof House) {
+      fn = houseExpenses(housing as House);
+    } else if (housing instanceof Rental) {
+      fn = rentalExpenses(housing as Rental);
+    } else {
+      throw new Error("Unsupported plan");
     }
-
 
     return fn(state, month);
   }

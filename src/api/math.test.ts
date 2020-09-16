@@ -81,7 +81,7 @@ describe('reccuringInvestment', function () {
 })
 
 describe('housingExpenses', function () {
-  it.only('should work with single non-year changing month', function () {
+  it('should work with single non-year changing month', function () {
     const state = new State();
     const house = new House();
 

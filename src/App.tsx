@@ -13,7 +13,7 @@ import {
 } from '@material-ui/core';
 import {Edit, Delete} from "@material-ui/icons";
 import {InputDialog, InputDialogData} from './components/InputDialog';
-import {Housing, monthlyPayment, investmentLoss} from './api/math';
+import {Housing, Data} from './api/math';
 import {encodeCSV, decodeCSV} from './api/csv'
 
 const moneyFormatter = new Intl.NumberFormat('en-US', {
@@ -28,7 +28,7 @@ function percentFormat(rate: number): string {
 
 function App() {
   const [open, setOpen] = React.useState(false);
-  const [rows, setRows] = React.useState<InputDialogData[]>([]);
+  const [rows, setRows] = React.useState<Data[]>([]);
   const [index, setIndex] = React.useState(-1);
   const [initialData, setInitialData] = React.useState<InputDialogData>(new InputDialogData());
 
