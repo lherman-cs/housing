@@ -190,7 +190,7 @@ export function* calculate(data: Data, months: number): Generator<State> {
   }
 }
 
-function principleAfterInterest(principle: number, rate: number): number {
+export function principleAfterInterest(principle: number, rate: number): number {
   expect(rate >= 0 && rate <= 1, "rate is not between 0 and 1");
   return principle * (1 + rate);
 }
@@ -212,7 +212,7 @@ export function reccuringInvestment(): CalculateFn {
   };
 };
 
-function housingExpenses(): CalculateFn {
+export function housingExpenses(): CalculateFn {
   return (state: State, month: number): State => {
     const housing = state.data.housing;
     let fn: CalculateFn | null;
