@@ -193,12 +193,49 @@ function generateFormTemplate(plan: Plan): DataForm<InputDialogData> {
       inputType: "number",
       startAdornment: "$",
       period: "yearly"
+    },
+    housePrice: {
+      rank: 6.1,
+      label: "House Price",
+      helper: "How much you expect to pay for the home",
+      inputType: "number",
+      startAdornment: "$"
+    },
+    buyClosingCosts: {
+      rank: 6.2,
+      label: "Buying Closing Costs",
+      helper: "How much you expect to pay for closing costs when buying the home(percent)",
+      inputType: "number",
+      endAdornment: "%"
+    },
+    sellClosingCosts: {
+      rank: 6.3,
+      label: "Selling Closing Costs",
+      helper: "How much you expect to pay for closing costs when selling the home(percent)",
+      inputType: "number",
+      endAdornment: "%"
+    },
+    growthRate: {
+      rank: 6.4,
+      label: "Home Value Appreciation",
+      helper: "How much you expect home value to go up each year",
+      inputType: "number",
+      endAdornment: "%",
+      period: "yearly"
+    },
+    hoaFee: {
+      rank: 6.5,
+      label: "HOA Fee",
+      helper: "Home Owner's Association Monthly Fee",
+      inputType: "number",
+      startAdornment: "$",
+      period: "monthly"
     }
   };
 
   const rental: DataForm<Rental> = {
     payment: {
-      rank: 6,
+      rank: 6.1,
       label: "Monthly Rent Payment",
       helper: "How much do you pay rent every month?",
       inputType: "number",
@@ -206,7 +243,7 @@ function generateFormTemplate(plan: Plan): DataForm<InputDialogData> {
       period: "monthly"
     },
     paymentIncrease: {
-      rank: 6,
+      rank: 6.2,
       label: "Payment Increase Rate",
       helper: "How much you expect rent to go up annually",
       inputType: "number",
