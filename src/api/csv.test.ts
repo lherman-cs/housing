@@ -1,5 +1,6 @@
 import {encodeCSV, decodeCSV} from "./csv";
 import {HousingNumber} from "./number";
+import {copy} from "./copy";
 
 
 describe('encodeCSV', function () {
@@ -71,6 +72,16 @@ describe('encodeCSV', function () {
 
 describe("decodeCSV", function () {
   it('it should be fine with 1 row', function () {
+    class Model {
+      key1 = "";
+      key2 = {
+        key3: new HousingNumber(0, "monthly")
+      };
+
+      clone() {
+        return new Model();
+      }
+    }
     const obj = {
       key1: "value1",
       key2: {
@@ -78,19 +89,24 @@ describe("decodeCSV", function () {
       }
     };
 
-    const model = {
-      key1: "",
-      key2: {
-        key3: new HousingNumber(0, "monthly")
-      }
-    };
-
+    const model = new Model();
     const encoded = encodeCSV([obj]);
     const decoded = decodeCSV(encoded, model);
     expect(decoded).toEqual([obj]);
   });
 
   it('it should be fine with multiple rows', function () {
+    class Model {
+      key1 = "";
+      key2 = {
+        key3: new HousingNumber(0, "monthly")
+      };
+
+      clone() {
+        return new Model();
+      }
+    }
+
     const obj1 = {
       key1: "value1",
       key2: {
@@ -105,13 +121,7 @@ describe("decodeCSV", function () {
       }
     };
 
-    const model = {
-      key1: "",
-      key2: {
-        key3: new HousingNumber(0, "monthly")
-      }
-    };
-
+    const model = new Model();
     const encoded = encodeCSV([obj1, obj2]);
     const decoded = decodeCSV(encoded, model);
     expect(decoded).toEqual([obj1, obj2]);

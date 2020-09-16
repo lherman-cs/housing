@@ -1,4 +1,8 @@
-export function decodeCSV<T extends any>(raw: string, model: T): T[] {
+export interface Cloneable<T> {
+  clone(): T;
+}
+
+export function decodeCSV<T extends Cloneable<T>>(raw: string, model: T): T[] {
   const csvRows = raw.split('\n').map(row => row.split(','));
   const csvHeaders = csvRows[0];
 
@@ -72,7 +76,7 @@ export function decodeCSV<T extends any>(raw: string, model: T): T[] {
   const rows = [];
   for (let i = 0; i < csvBody.length; i++) {
     // deep copy models
-    const row = JSON.parse(JSON.stringify(model));
+    const row = model.clone();
     const csvNode = JSON.parse(JSON.stringify(csvModel));
 
     fillCSVNode(csvNode, csvBody[i]);

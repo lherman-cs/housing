@@ -179,7 +179,7 @@ export function postCalculateMonth(): CalculateFn {
 
 export function* calculate(data: Data, months: number): Generator<State> {
   let state = new State();
-  state.data = data;
+  state.data = data.clone();
 
   const fn = calculateMonth();
   const postFn = postCalculateMonth();
