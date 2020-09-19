@@ -120,7 +120,7 @@ function generateFormTemplate(plan: Plan): DataForm<InputDialogData> {
     },
     investment: {
       principle: {
-        start: {
+        amount: {
           rank: 2,
           label: "Investment Principle",
           helper: "How much money do you have currently (we expect you to take your down payment out of this money)",

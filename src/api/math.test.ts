@@ -301,12 +301,12 @@ describe('sellHouse', function () {
 
 // TODO: write loanIntrest tests
 describe('loanIntrest', function () {
-  it.only('Happy Path', function () {
+  it('Happy Path', function () {
   });
 });
 
 // TODO: write taxCredits tests
 describe('taxCredits', function () {
-  it.only('Happy Path', function () {
+  it('Happy Path', function () {
   });
 });

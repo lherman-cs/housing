@@ -83,6 +83,6 @@ export class GrowableNumber {
   }
 
   clone(): GrowableNumber {
-    return new GrowableNumber(this.start, this.rate.clone());
+    return new GrowableNumber(this.amount, this.rate.clone());
   }
 }
