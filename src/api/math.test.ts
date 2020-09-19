@@ -188,7 +188,34 @@ describe('housingExpenses', function () {
 })
 
 describe('sellHouse', function () {
-  it('should work with joint filing under 500k', function () {
+  it('should work with single filing under 250k gain', function () {
+    const state = new State();
+    const housing = state.data.housing;
+    const house = housing.house;
+    const loan = state.data.housing.house.loan;
+    const taxes = state.data.taxes;
+
+    housing.downPayment = 20000;
+    house.housePrice = 100000;
+    house.sellClosingCosts = 0.06;
+    loan.principle.start = house.housePrice - housing.downPayment;
+    taxes.filingStatus = "individual";
+    taxes.capitalGainsRate = 0.05
+
+    const stateAfterAppreciate = state.clone();
+    const houseAfterAppreciate = stateAfterAppreciate.data.housing.house;
+    houseAfterAppreciate.housePrice += 250000;
+
+    const expectedState = stateAfterAppreciate.clone();
+    expectedState.netWorth = houseAfterAppreciate.housePrice
+      - houseAfterAppreciate.loan.principle.start
+      - houseAfterAppreciate.sellClosingCosts * houseAfterAppreciate.housePrice;
+
+    const newState = log(sellHouse(state))(stateAfterAppreciate, 1);
+    expect(newState).toEqual(expectedState);
+  });
+
+  it('should work with joint filing under 500k gain', function () {
     const state = new State();
     const housing = state.data.housing;
     const house = housing.house;
@@ -207,8 +234,63 @@ describe('sellHouse', function () {
     houseAfterAppreciate.housePrice += 20000;
 
     const expectedState = stateAfterAppreciate.clone();
-    console.log({housePrice: houseAfterAppreciate.housePrice, loan: houseAfterAppreciate.loan.principle.start});
     expectedState.netWorth = houseAfterAppreciate.housePrice - 19200 - houseAfterAppreciate.loan.principle.start;
+
+    const newState = log(sellHouse(state))(stateAfterAppreciate, 1);
+    expect(newState).toEqual(expectedState);
+  });
+
+  it('should work with single filing over 250k gain', function () {
+    const state = new State();
+    const housing = state.data.housing;
+    const house = housing.house;
+    const loan = state.data.housing.house.loan;
+    const taxes = state.data.taxes;
+
+    housing.downPayment = 100000;
+    house.housePrice = 500000;
+    house.sellClosingCosts = 0.06;
+    loan.principle.start = house.housePrice - housing.downPayment;
+    taxes.filingStatus = "individual";
+    taxes.capitalGainsRate = 0.15
+
+    const stateAfterAppreciate = state.clone();
+    const houseAfterAppreciate = stateAfterAppreciate.data.housing.house;
+    houseAfterAppreciate.housePrice += 900000;
+
+    const expectedState = stateAfterAppreciate.clone();
+    expectedState.netWorth = houseAfterAppreciate.housePrice
+      - houseAfterAppreciate.loan.principle.start
+      - houseAfterAppreciate.sellClosingCosts * houseAfterAppreciate.housePrice
+      - (900000 - 250000) * stateAfterAppreciate.data.taxes.capitalGainsRate;
+
+    const newState = log(sellHouse(state))(stateAfterAppreciate, 1);
+    expect(newState).toEqual(expectedState);
+  });
+
+  it('should work with joint filing over 500k gain', function () {
+    const state = new State();
+    const housing = state.data.housing;
+    const house = housing.house;
+    const loan = state.data.housing.house.loan;
+    const taxes = state.data.taxes;
+
+    housing.downPayment = 10000;
+    house.housePrice = 300000;
+    house.sellClosingCosts = 0.06;
+    loan.principle.start = house.housePrice - housing.downPayment;
+    taxes.filingStatus = "joint";
+    taxes.capitalGainsRate = 0.15
+
+    const stateAfterAppreciate = state.clone();
+    const houseAfterAppreciate = stateAfterAppreciate.data.housing.house;
+    houseAfterAppreciate.housePrice += 900000;
+
+    const expectedState = stateAfterAppreciate.clone();
+    expectedState.netWorth = houseAfterAppreciate.housePrice
+      - houseAfterAppreciate.loan.principle.start
+      - houseAfterAppreciate.sellClosingCosts * houseAfterAppreciate.housePrice
+      - (900000 - 500000) * stateAfterAppreciate.data.taxes.capitalGainsRate;
 
     const newState = log(sellHouse(state))(stateAfterAppreciate, 1);
     expect(newState).toEqual(expectedState);
