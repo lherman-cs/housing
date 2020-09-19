@@ -104,14 +104,31 @@ export class State {
 export type CalculateFn = (state: State, month: number) => State;
 
 export function log(fn: CalculateFn): CalculateFn {
-  return (state: State, month: number): State => {
-    const space = 4;
-    console.debug("Old State");
-    console.debug(JSON.stringify(state, null, space));
-    state = fn(state, month);
-    console.debug("New State");
-    console.debug(JSON.stringify(state, null, space));
-    return state;
+  const buff: string[] = [];
+  function logDiff(oldState: any, newState: any, prefixes: string[]) {
+    if (typeof newState !== 'object') {
+      if (oldState !== newState) {
+        buff.push(`\t${prefixes.join(".")}: ${oldState} -> ${newState}`);
+      }
+
+      return;
+    }
+
+
+    for (const key in newState) {
+      prefixes.push(key);
+      logDiff(oldState[key], newState[key], prefixes);
+      prefixes.pop();
+    }
+  }
+
+  return (oldState: State, month: number): State => {
+    const newState = fn(oldState, month);
+    buff.push(`Changes in state on month ${month}:`);
+    logDiff(oldState, newState, []);
+    console.debug(buff.join("\n"));
+
+    return newState;
   }
 }
 
