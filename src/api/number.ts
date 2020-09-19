@@ -64,17 +64,22 @@ const growableNumberCallbackNoop: GrowableNumberCallback = (n: number): number =
 }
 
 export class GrowableNumber {
-  constructor(public start: number, public rate: HousingNumber) {}
+  constructor(public amount: number, public rate: HousingNumber) {}
 
   *generator(period: Period, onBefore = growableNumberCallbackNoop, onAfter = growableNumberCallbackNoop): Generator<number> {
-    let start = this.start;
+    let amount = this.amount;
 
     while (true) {
-      start = onBefore(start);
-      start *= (1 + this.rate.to(period));
-      start = onAfter(start);
-      yield start;
+      amount = onBefore(amount);
+      amount *= (1 + this.rate.to(period));
+      amount = onAfter(amount);
+      yield amount;
     }
+  }
+
+  update(amount: number, rate: number, period: Period) {
+    this.amount = amount;
+    this.rate.update(period, _ => rate);
   }
 
   clone(): GrowableNumber {

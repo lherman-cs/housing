@@ -28,13 +28,13 @@ describe('reccuringInvestment', function () {
     const state = new State();
     const investment = new Investment();
     investment.contribution.update("monthly", _ => 1000);
-    investment.principle.start = 0;
+    investment.principle.amount = 0;
     investment.principle.rate.update("monthly", _ => .05);
     state.data.investment = investment;
 
     const expectedState = state.clone();
     expectedState.netWorth = 1000;
-    expectedState.data.investment.principle.start = 1000;
+    expectedState.data.investment.principle.amount = 1000;
 
     const newState = log(reccuringInvestment())(state, 2);
     expect(newState).toEqual(expectedState)
@@ -44,13 +44,13 @@ describe('reccuringInvestment', function () {
     const state = new State();
     const investment = new Investment();
     investment.contribution.update("monthly", _ => 1000);
-    investment.principle.start = 1000;
+    investment.principle.amount = 1000;
     investment.principle.rate.update("monthly", _ => .05);
     state.data.investment = investment;
 
     const expectedState = state.clone();
     expectedState.netWorth = 1050;
-    expectedState.data.investment.principle.start = 2050;
+    expectedState.data.investment.principle.amount = 2050;
 
     const newState = log(reccuringInvestment())(state, 3);
     expect(newState).toEqual(expectedState)
@@ -60,20 +60,20 @@ describe('reccuringInvestment', function () {
     const state = new State();
     const investment = new Investment();
     investment.contribution.update("monthly", _ => 1000);
-    investment.principle.start = 0;
+    investment.principle.amount = 0;
     investment.principle.rate.update("monthly", _ => .05);
     state.data.investment = investment;
 
     const expectedState1 = state.clone();
     expectedState1.netWorth = 1000;
-    expectedState1.data.investment.principle.start = 1000;
+    expectedState1.data.investment.principle.amount = 1000;
 
     const newState1 = log(reccuringInvestment())(state, 0);
     expect(newState1).toEqual(expectedState1)
 
     const expectedState2 = expectedState1.clone();
     expectedState2.netWorth = 2050;
-    expectedState2.data.investment.principle.start = 2050;
+    expectedState2.data.investment.principle.amount = 2050;
 
     const newState2 = log(reccuringInvestment())(newState1, 1);
     expect(newState2).toEqual(expectedState2)
@@ -198,7 +198,7 @@ describe('sellHouse', function () {
     housing.downPayment = 20000;
     house.housePrice = 100000;
     house.sellClosingCosts = 0.06;
-    loan.principle.start = house.housePrice - housing.downPayment;
+    loan.principle.amount = house.housePrice - housing.downPayment;
     taxes.filingStatus = "individual";
     taxes.capitalGainsRate = 0.05
 
@@ -208,7 +208,7 @@ describe('sellHouse', function () {
 
     const expectedState = stateAfterAppreciate.clone();
     expectedState.netWorth = houseAfterAppreciate.housePrice
-      - houseAfterAppreciate.loan.principle.start
+      - houseAfterAppreciate.loan.principle.amount
       - houseAfterAppreciate.sellClosingCosts * houseAfterAppreciate.housePrice;
 
     const newState = log(sellHouse(state))(stateAfterAppreciate, 1);
@@ -225,7 +225,7 @@ describe('sellHouse', function () {
     housing.downPayment = 50000;
     house.housePrice = 300000;
     house.sellClosingCosts = 0.06;
-    loan.principle.start = house.housePrice - housing.downPayment;
+    loan.principle.amount = house.housePrice - housing.downPayment;
     taxes.filingStatus = "joint";
     taxes.capitalGainsRate = 0.15
 
@@ -234,7 +234,7 @@ describe('sellHouse', function () {
     houseAfterAppreciate.housePrice += 20000;
 
     const expectedState = stateAfterAppreciate.clone();
-    expectedState.netWorth = houseAfterAppreciate.housePrice - 19200 - houseAfterAppreciate.loan.principle.start;
+    expectedState.netWorth = houseAfterAppreciate.housePrice - 19200 - houseAfterAppreciate.loan.principle.amount;
 
     const newState = log(sellHouse(state))(stateAfterAppreciate, 1);
     expect(newState).toEqual(expectedState);
@@ -250,7 +250,7 @@ describe('sellHouse', function () {
     housing.downPayment = 100000;
     house.housePrice = 500000;
     house.sellClosingCosts = 0.06;
-    loan.principle.start = house.housePrice - housing.downPayment;
+    loan.principle.amount = house.housePrice - housing.downPayment;
     taxes.filingStatus = "individual";
     taxes.capitalGainsRate = 0.15
 
@@ -260,7 +260,7 @@ describe('sellHouse', function () {
 
     const expectedState = stateAfterAppreciate.clone();
     expectedState.netWorth = houseAfterAppreciate.housePrice
-      - houseAfterAppreciate.loan.principle.start
+      - houseAfterAppreciate.loan.principle.amount
       - houseAfterAppreciate.sellClosingCosts * houseAfterAppreciate.housePrice
       - (900000 - 250000) * stateAfterAppreciate.data.taxes.capitalGainsRate;
 
@@ -278,7 +278,7 @@ describe('sellHouse', function () {
     housing.downPayment = 10000;
     house.housePrice = 300000;
     house.sellClosingCosts = 0.06;
-    loan.principle.start = house.housePrice - housing.downPayment;
+    loan.principle.amount = house.housePrice - housing.downPayment;
     taxes.filingStatus = "joint";
     taxes.capitalGainsRate = 0.15
 
@@ -288,11 +288,25 @@ describe('sellHouse', function () {
 
     const expectedState = stateAfterAppreciate.clone();
     expectedState.netWorth = houseAfterAppreciate.housePrice
-      - houseAfterAppreciate.loan.principle.start
+      - houseAfterAppreciate.loan.principle.amount
       - houseAfterAppreciate.sellClosingCosts * houseAfterAppreciate.housePrice
       - (900000 - 500000) * stateAfterAppreciate.data.taxes.capitalGainsRate;
 
     const newState = log(sellHouse(state))(stateAfterAppreciate, 1);
     expect(newState).toEqual(expectedState);
+  });
+});
+
+// TODO: find loanPayment unit tests from git history
+
+// TODO: write loanIntrest tests
+describe('loanIntrest', function () {
+  it.only('Happy Path', function () {
+  });
+});
+
+// TODO: write taxCredits tests
+describe('taxCredits', function () {
+  it.only('Happy Path', function () {
   });
 });

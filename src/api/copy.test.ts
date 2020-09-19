@@ -19,11 +19,11 @@ describe('copy', function () {
     expect(cpy.term).toEqual(20);
 
     // Validate deep copy, ensure original is not mutated
-    expect(cpy.principle.start).toEqual(95);
+    expect(cpy.principle.amount).toEqual(95);
     expect(loan.principle.rate).toEqual(cpy.principle.rate);
     cpy.principle = new GrowableNumber(5, new HousingNumber(.01, "monthly"));
     expect(loan.principle.rate === cpy.principle.rate).toBeFalsy();
-    expect(cpy.principle.start).toEqual(5);
+    expect(cpy.principle.amount).toEqual(5);
   })
 })
 

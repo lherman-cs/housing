@@ -136,10 +136,10 @@ function expect(condition: boolean, message?: string) {
 */
 export function exponentialSum(base: GrowableNumber, years: number): number {
   expect(base.rate.yearly() >= 0 && base.rate.yearly() <= 1, "rate is not between 0 and 1");
-  assert(base.start >= 0, "base is negative");
+  assert(base.amount >= 0, "base is negative");
   assert(years >= 0, "years is negative");
 
-  let total = base.start;
+  let total = base.amount;
   let year = 1;
 
   for (const current of base.generator("yearly")) {
@@ -170,6 +170,7 @@ export function calculateMonth(): CalculateFn {
   return chainCalculations(
     reccuringInvestment(),
     housingExpenses(),
+    taxCredits(),
   )
 }
 
@@ -186,7 +187,7 @@ export function* calculate(data: Data, months: number): Generator<State> {
 
   const loan = state.data.housing.house.loan;
   const housing = state.data.housing;
-  loan.principle.start = housing.house.housePrice - housing.downPayment;
+  loan.principle.amount = housing.house.housePrice - housing.downPayment;
 
   for (let month = 1; month <= months; month++) {
     state = fn(state, month);
@@ -204,12 +205,12 @@ export function reccuringInvestment(): CalculateFn {
     const data = state.data;
     const contribution = data.investment.contribution;
     const rate = data.investment.principle.rate;
-    const principle = data.investment.principle.start;
+    const principle = data.investment.principle.amount;
     assert(principle >= 0, "base is negative");
 
     const newPrinciple = principleAfterInterest(principle, rate.monthly()) + contribution.monthly();
     const newState = state.clone();
-    newState.data.investment.principle.start = newPrinciple;
+    newState.data.investment.principle.amount = newPrinciple;
     newState.netWorth += newPrinciple - principle;
 
     return newState;
@@ -301,7 +302,7 @@ export function sellHouse(initialState: State): CalculateFn {
     const newState = state.clone();
 
     // loan principle is how much is owed on the loan
-    const loanPrinciple = newState.data.housing.house.loan.principle.start;
+    const loanPrinciple = newState.data.housing.house.loan.principle.amount;
 
     // closing costs, a percent of which comes out of home value
     const closingCosts = newState.data.housing.house.sellClosingCosts;
@@ -327,20 +328,27 @@ export function sellHouse(initialState: State): CalculateFn {
   }
 }
 
+/*
+   loanPayment computes and returns the monthly morgage (loan) payment
+*/
 export function loanPayment(loan: Loan) {
   const numPayments = 12 * loan.term;
   const rate = loan.principle.rate.monthly()
   const top = rate * Math.pow(1 + rate, numPayments)
   const bottom = Math.pow(1 + rate, numPayments) - 1
-  return new HousingNumber(loan.principle.start * top / bottom, "monthly")
+  return new HousingNumber(loan.principle.amount * top / bottom, "monthly")
 }
 
 export function round(n: number) {
   return +n.toFixed(2)
 }
 
+/*
+   loanPrinciple computes the total amount of principle owed on the loan after
+      a specified number of years
+*/
 export function loanPrinciple(loan: Loan, years: number) {
-  let loanAmount = loan.principle.start;
+  let loanAmount = loan.principle.amount;
   const months = years * 12;
   const payment = loanPayment(loan).monthly()
   for (let month = 0; month < months; month++) {
@@ -352,6 +360,84 @@ export function loanPrinciple(loan: Loan, years: number) {
   return Math.round(loanAmount);
 }
 
+export type LoanMetadata = {
+  interestPaid: number;
+  newPrinciple: number;
+}
 
+/*
+   loanInterest computes the amount of interest paid in this month
+*/
+export function loanIntrest(loan: Loan): LoanMetadata {
+  const principle = loan.principle.amount;
 
+  const payment = loanPayment(loan).monthly();
+  const interestPaid = round(principle * loan.principle.rate.monthly());
+  const principlePaid = payment - interestPaid;
+  let newPrinciple = principle - principlePaid;
+  if (principle < principlePaid) {newPrinciple = 0;}
 
+  return {
+    interestPaid,
+    newPrinciple
+  };
+}
+
+/*
+  taxCredits adds tax breaks from newWorth once a year
+  Credits considered are:
+    * Morgage Interest Deduction (consider morgage interest payments as
+       tax deductions)
+    * Property Tax Deductions (consider property tax as a deduction)
+
+  It is assumed that deductions will not affect your tax bracket (even
+    though this is not always the case). For example
+
+    If you paid $4000 in propery tax and you are in the 25% tax bracket, your
+      deduction would be valued at 4000 * .25 = 1000 and the calculator will
+      apply 1000 to netWorth.
+
+  Credits not considered are:
+    * Capital Gains Exemption (assume the owner has lived in the house
+       2 of last 5 years and as such qualifies for the this deduction
+       which means for the first 250k of profit made from sale of home
+       when single and first 500k of profit made from sale of home for
+       joint (married) filers, no capital gains tax is applied)
+*/
+export function taxCredits(): CalculateFn {
+  // Store how much interest has been paid this year in local state
+  let interest = 0;
+
+  return (state: State, month: number): State => {
+    // Tax credits do not apply to renters
+    if (state.data.housing.plan === 'rental') {
+      return state;
+    }
+
+    const taxes = state.data.taxes;
+    const {interestPaid, newPrinciple} =
+      loanIntrest(state.data.housing.house.loan)
+
+    // Update interest paid this year
+    interest += interestPaid;
+
+    const newState = state.clone();
+
+    // Update principle owed on loan
+    newState.data.housing.house.loan.principle.update(
+      newPrinciple,
+      state.data.housing.house.loan.principle.rate.to("monthly"),
+      "monthly"
+    );
+
+    if (month % 12 === 0) {
+      // Morgage Interest Deduction
+      newState.netWorth += interest * taxes.marginalIncomeTaxRate;
+      interest = 0;
+      // Property Tax Deduction
+      newState.netWorth += taxes.property.yearly() * taxes.marginalIncomeTaxRate;
+    }
+
+    return newState;
+  }
+}
