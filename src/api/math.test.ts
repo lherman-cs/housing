@@ -7,7 +7,8 @@ import {
   State,
   log,
   loanPayment,
-  increaseByRate
+  increaseByRate,
+  sellHouse
 } from "./math";
 import {HousingNumber, GrowableNumber} from "./number";
 
@@ -185,3 +186,31 @@ describe('housingExpenses', function () {
     expect(newState2).toEqual(expectedState2);
   });
 })
+
+describe('sellHouse', function () {
+  it('should work with joint filing under 500k', function () {
+    const state = new State();
+    const housing = state.data.housing;
+    const house = housing.house;
+    const loan = state.data.housing.house.loan;
+    const taxes = state.data.taxes;
+
+    housing.downPayment = 50000;
+    house.housePrice = 300000;
+    house.sellClosingCosts = 0.06;
+    loan.principle.start = house.housePrice - housing.downPayment;
+    taxes.filingStatus = "joint";
+    taxes.capitalGainsRate = 0.15
+
+    const stateAfterAppreciate = state.clone();
+    const houseAfterAppreciate = stateAfterAppreciate.data.housing.house;
+    houseAfterAppreciate.housePrice += 20000;
+
+    const expectedState = stateAfterAppreciate.clone();
+    console.log({housePrice: houseAfterAppreciate.housePrice, loan: houseAfterAppreciate.loan.principle.start});
+    expectedState.netWorth = houseAfterAppreciate.housePrice - 19200 - houseAfterAppreciate.loan.principle.start;
+
+    const newState = log(sellHouse(state))(stateAfterAppreciate, 1);
+    expect(newState).toEqual(expectedState);
+  });
+});

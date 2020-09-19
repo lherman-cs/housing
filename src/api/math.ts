@@ -80,7 +80,7 @@ export class Rental {
 }
 
 export class Data {
-  housing: Housing = new Housing();
+  housing = new Housing();
   investment = new Investment();
   taxes = new Tax();
   inflation = new HousingNumber(0.02, "yearly");
@@ -173,8 +173,8 @@ export function calculateMonth(): CalculateFn {
   )
 }
 
-export function postCalculateMonth(): CalculateFn {
-  return chainCalculations(/* TODO: Add calculation steps */);
+export function postCalculateMonth(initialState: State): CalculateFn {
+  return chainCalculations(sellHouse(initialState));
 }
 
 export function* calculate(data: Data, months: number): Generator<State> {
@@ -182,7 +182,11 @@ export function* calculate(data: Data, months: number): Generator<State> {
   state.data = data.clone();
 
   const fn = calculateMonth();
-  const postFn = postCalculateMonth();
+  const postFn = postCalculateMonth(state);
+
+  const loan = state.data.housing.house.loan;
+  const housing = state.data.housing;
+  loan.principle.start = housing.house.housePrice - housing.downPayment;
 
   for (let month = 1; month <= months; month++) {
     state = fn(state, month);
@@ -284,6 +288,45 @@ function rentalExpenses(rental: Rental): CalculateFn {
   }
 }
 
+/*
+ * sellHouse simulates the net gain of selling the house
+ * */
+export function sellHouse(initialState: State): CalculateFn {
+  const initialHousePrice = initialState.data.housing.house.housePrice;
+  return (state: State, _: number): State => {
+    if (state.data.housing.plan !== "house") {
+      return state;
+    }
+
+    const newState = state.clone();
+
+    // loan principle is how much is owed on the loan
+    const loanPrinciple = newState.data.housing.house.loan.principle.start;
+
+    // closing costs, a percent of which comes out of home value
+    const closingCosts = newState.data.housing.house.sellClosingCosts;
+
+    // house price is an estimation of what the house is worth
+    // Note: house price has already been appreciated for the month
+    const housePrice = newState.data.housing.house.housePrice;
+
+    const sellExpenses = housePrice * closingCosts + loanPrinciple;
+    let gain = housePrice - initialHousePrice;
+    const capitalGainsRate = newState.data.taxes.capitalGainsRate;
+    const filingStatus = newState.data.taxes.filingStatus;
+    const limit = filingStatus === 'joint' ? 500000 : 250000;
+
+    // apply capital gains exemption
+    if (gain > limit) {
+      gain = limit + (gain - limit) * (1 - capitalGainsRate);
+    }
+
+    newState.netWorth += (initialHousePrice + gain - sellExpenses);
+
+    return newState;
+  }
+}
+
 export function loanPayment(loan: Loan) {
   const numPayments = 12 * loan.term;
   const rate = loan.principle.rate.monthly()
@@ -308,3 +351,7 @@ export function loanPrinciple(loan: Loan, years: number) {
   }
   return Math.round(loanAmount);
 }
+
+
+
+
