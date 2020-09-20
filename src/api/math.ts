@@ -7,6 +7,7 @@ export type TaxFilingStatus = 'individual' | 'joint'
 export class Investment {
   principle = new GrowableNumber(100000, new HousingNumber(0.06, "yearly"));
   contribution = new HousingNumber(1000, "monthly");
+  totalGain = 0;
 
   clone() {
     const investment = new Investment();
@@ -192,7 +193,7 @@ export function calculateMonth(): CalculateFn {
 }
 
 export function postCalculateMonth(initialState: State): CalculateFn {
-  return chainCalculations(sellHouse(initialState));
+  return chainCalculations(sellHouse(initialState), sellInvestment());
 }
 
 export function* calculate(data: Data, months: number): Generator<State> {
@@ -225,10 +226,10 @@ export function reccuringInvestment(): CalculateFn {
     const principle = data.investment.principle.amount;
     assert(principle >= 0, "base is negative");
 
-    const newPrinciple = principleAfterInterest(principle, rate.monthly()) + contribution.monthly();
+    const newPrinciple = principleAfterInterest(principle, rate.monthly());
     const newState = state.clone();
-    newState.data.investment.principle.amount = newPrinciple;
-    newState.netWorth += newPrinciple - principle;
+    newState.data.investment.principle.amount = newPrinciple + contribution.monthly();
+    newState.data.investment.totalGain += newPrinciple - principle;
 
     return newState;
   };
@@ -237,10 +238,11 @@ export function reccuringInvestment(): CalculateFn {
 export function housingExpenses(): CalculateFn {
   return (state: State, month: number): State => {
     const housing = state.data.housing;
+    const investment = state.data.investment;
     let fn: CalculateFn | null;
 
     const rentIncome = housing.chargeForRoom.monthly() * housing.extraBedrooms;
-    state.netWorth +=
+    investment.principle.amount +=
       rentIncome
       - housing.insurance.monthly()
       - housing.utilityCost.monthly();
@@ -276,7 +278,7 @@ function houseExpenses(house: House): CalculateFn {
       - house.hoaFee.monthly()
 
     const newState = state.clone();
-    newState.netWorth += expense;
+    newState.data.investment.principle.amount += expense;
 
     const newHouse = newState.data.housing.house;
     newHouse.housePrice = principleAfterInterest(newHouse.housePrice, newHouse.growthRate.monthly());
@@ -295,13 +297,24 @@ function houseExpenses(house: House): CalculateFn {
 function rentalExpenses(rental: Rental): CalculateFn {
   return (state: State, month: number): State => {
     const newState = state.clone();
-    newState.netWorth -= rental.payment.monthly();
+    newState.data.investment.principle.amount -= rental.payment.monthly();
 
     if (month % 12 === 0) {
       const newRental = newState.data.housing.rental;
       newRental.payment.update("monthly", increaseByRate(rental.paymentIncrease.yearly()));
     }
 
+    return newState;
+  }
+}
+
+export function sellInvestment(): CalculateFn {
+  return (state: State, _: number): State => {
+    const newState = state.clone();
+    const investment = newState.data.investment;
+    const capitalGainsRate = newState.data.taxes.capitalGainsRate;
+
+    newState.netWorth += investment.totalGain * (1 - capitalGainsRate);
     return newState;
   }
 }
@@ -377,21 +390,16 @@ export function loanPrinciple(loan: Loan, years: number) {
   return Math.round(loanAmount);
 }
 
-export type LoanMetadata = {
-  interestPaid: number;
-  newPrinciple: number;
-}
-
 /*
    loanInterest computes the amount of interest paid in this month
 */
-export function loanIntrest(loan: Loan): LoanMetadata {
+export function loanIntrest(loan: Loan) {
   const principle = loan.principle.amount;
 
   const payment = loanPayment(loan).monthly();
   const interestPaid = round(principle * loan.principle.rate.monthly());
   const principlePaid = payment - interestPaid;
-  let newPrinciple = principle - principlePaid;
+  let newPrinciple = principle - round(principlePaid);
   if (principle < principlePaid) {newPrinciple = 0;}
 
   return {
@@ -449,10 +457,11 @@ export function taxCredits(): CalculateFn {
 
     if (month % 12 === 0) {
       // Morgage Interest Deduction
-      newState.netWorth += interest * taxes.marginalIncomeTaxRate;
+      const principle = newState.data.investment.principle;
+      principle.amount += interest * taxes.marginalIncomeTaxRate;
       interest = 0;
       // Property Tax Deduction
-      newState.netWorth += taxes.property.yearly() * taxes.marginalIncomeTaxRate;
+      principle.amount += taxes.property.yearly() * taxes.marginalIncomeTaxRate;
     }
 
     return newState;

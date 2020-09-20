@@ -1,14 +1,17 @@
 import {
-  Investment,
   exponentialSum,
   reccuringInvestment,
   housingExpenses,
   principleAfterInterest,
   State,
   log,
+  Loan,
   loanPayment,
+  loanPrinciple,
+  round,
   increaseByRate,
-  sellHouse
+  sellHouse,
+  sellInvestment,
 } from "./math";
 import {HousingNumber, GrowableNumber} from "./number";
 
@@ -26,15 +29,16 @@ describe('exponentialSum', function () {
 describe('reccuringInvestment', function () {
   it('Happy Path 1', function () {
     const state = new State();
-    const investment = new Investment();
+    const investment = state.data.investment;
     investment.contribution.update("monthly", _ => 1000);
     investment.principle.amount = 0;
     investment.principle.rate.update("monthly", _ => .05);
+    investment.totalGain = 0;
     state.data.investment = investment;
 
     const expectedState = state.clone();
-    expectedState.netWorth = 1000;
     expectedState.data.investment.principle.amount = 1000;
+    expectedState.data.investment.totalGain = 0;
 
     const newState = log(reccuringInvestment())(state, 2);
     expect(newState).toEqual(expectedState)
@@ -42,15 +46,15 @@ describe('reccuringInvestment', function () {
 
   it('Happy Path 2', function () {
     const state = new State();
-    const investment = new Investment();
+    const investment = state.data.investment;
     investment.contribution.update("monthly", _ => 1000);
     investment.principle.amount = 1000;
     investment.principle.rate.update("monthly", _ => .05);
     state.data.investment = investment;
 
     const expectedState = state.clone();
-    expectedState.netWorth = 1050;
     expectedState.data.investment.principle.amount = 2050;
+    expectedState.data.investment.totalGain = 50;
 
     const newState = log(reccuringInvestment())(state, 3);
     expect(newState).toEqual(expectedState)
@@ -58,22 +62,21 @@ describe('reccuringInvestment', function () {
 
   it('should work with multi months', function () {
     const state = new State();
-    const investment = new Investment();
+    const investment = state.data.investment;
     investment.contribution.update("monthly", _ => 1000);
     investment.principle.amount = 0;
     investment.principle.rate.update("monthly", _ => .05);
     state.data.investment = investment;
 
     const expectedState1 = state.clone();
-    expectedState1.netWorth = 1000;
     expectedState1.data.investment.principle.amount = 1000;
 
     const newState1 = log(reccuringInvestment())(state, 0);
     expect(newState1).toEqual(expectedState1)
 
     const expectedState2 = expectedState1.clone();
-    expectedState2.netWorth = 2050;
     expectedState2.data.investment.principle.amount = 2050;
+    expectedState2.data.investment.totalGain = 50;
 
     const newState2 = log(reccuringInvestment())(newState1, 1);
     expect(newState2).toEqual(expectedState2)
@@ -85,6 +88,7 @@ describe('housingExpenses', function () {
     const state = new State();
     const housing = state.data.housing;
     const house = housing.house;
+    const investment = state.data.investment;
 
     house.housePrice = 300000;
     house.growthRate = new HousingNumber(0.05, 'yearly');
@@ -96,14 +100,14 @@ describe('housingExpenses', function () {
     house.hoaFee = new HousingNumber(300, 'monthly');
     house.loan.term = 30;
     house.loan.principle = new GrowableNumber(100000, new HousingNumber(0.03, 'yearly'));
-    state.data.housing = housing;
+    investment.principle.amount = 0;
 
     const expectedState = state.clone();
     const expectedHousing = expectedState.data.housing;
 
     expectedHousing.house.housePrice = principleAfterInterest(house.housePrice, house.growthRate.monthly());
     expectedState.data.housing = expectedHousing;
-    expectedState.netWorth = -800 - loanPayment(house.loan).monthly();
+    expectedState.data.investment.principle.amount = -800 - loanPayment(house.loan).monthly();
 
     const newState = log(housingExpenses())(state, 1);
     expect(newState).toEqual(expectedState);
@@ -113,6 +117,7 @@ describe('housingExpenses', function () {
     const state = new State();
     const housing = state.data.housing;
     const house = housing.house;
+    const investment = state.data.investment;
 
     house.housePrice = 300000;
     house.growthRate = new HousingNumber(0.05, 'yearly');
@@ -125,7 +130,7 @@ describe('housingExpenses', function () {
     house.hoaFee = new HousingNumber(300, 'monthly');
     house.loan.term = 30;
     house.loan.principle = new GrowableNumber(100000, new HousingNumber(0.03, 'yearly'));
-    state.data.housing = housing;
+    investment.principle.amount = 0;
 
     const expectedState = state.clone();
     const expectedHousing = expectedState.data.housing;
@@ -140,7 +145,7 @@ describe('housingExpenses', function () {
     expectedHouse.hoaFee.update("monthly", increaseByInflation);
 
     expectedState.data.housing = expectedHousing;
-    expectedState.netWorth = -800 - loanPayment(house.loan).monthly();
+    expectedState.data.investment.principle.amount = -800 - loanPayment(house.loan).monthly();
 
     const newState = log(housingExpenses())(state, 12);
     expect(newState).toEqual(expectedState);
@@ -150,6 +155,7 @@ describe('housingExpenses', function () {
     const state = new State();
     const housing = state.data.housing;
     const house = housing.house;
+    const investment = state.data.investment;
 
     house.housePrice = 300000;
     house.growthRate = new HousingNumber(0.05, 'yearly');
@@ -161,7 +167,7 @@ describe('housingExpenses', function () {
     house.hoaFee = new HousingNumber(300, 'monthly');
     house.loan.term = 30;
     house.loan.principle = new GrowableNumber(100000, new HousingNumber(0.03, 'yearly'));
-    state.data.housing = housing;
+    investment.principle.amount = 0;
 
     const expectedState1 = state.clone();
     const expectedHousing1 = expectedState1.data.housing;
@@ -169,7 +175,7 @@ describe('housingExpenses', function () {
 
     expectedHouse1.housePrice = principleAfterInterest(expectedHouse1.housePrice, expectedHouse1.growthRate.monthly());
     expectedState1.data.housing = expectedHousing1;
-    expectedState1.netWorth = -800 - loanPayment(expectedHouse1.loan).monthly();
+    expectedState1.data.investment.principle.amount = -800 - loanPayment(expectedHouse1.loan).monthly();
 
     const newState1 = log(housingExpenses())(state, 1);
     expect(newState1).toEqual(expectedState1);
@@ -180,7 +186,7 @@ describe('housingExpenses', function () {
 
     expectedHouse2.housePrice = principleAfterInterest(expectedHouse2.housePrice, expectedHouse2.growthRate.monthly());
     expectedState2.data.housing = expectedHousing2;
-    expectedState2.netWorth -= (800 + loanPayment(expectedHouse2.loan).monthly());
+    expectedState2.data.investment.principle.amount -= (800 + loanPayment(expectedHouse2.loan).monthly());
 
     const newState2 = log(housingExpenses())(newState1, 1);
     expect(newState2).toEqual(expectedState2);
@@ -297,16 +303,133 @@ describe('sellHouse', function () {
   });
 });
 
-// TODO: find loanPayment unit tests from git history
-
-// TODO: write loanIntrest tests
-describe('loanIntrest', function () {
+describe('loanPayment', function () {
   it('Happy Path', function () {
+    let loan = new Loan();
+    loan.term = 30;
+    loan.principle = new GrowableNumber(10000, new HousingNumber(.03, "yearly"));
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(42.16);
+
+    loan.term = 7;
+    loan.principle = new GrowableNumber(10000, new HousingNumber(.03, "yearly"));
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(132.13);
+
+    loan.term = 15;
+    loan.principle = new GrowableNumber(165000, new HousingNumber(.045, "yearly"));
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(1262.24);
+
+    loan.principle = new GrowableNumber(9000, new HousingNumber(.03, "yearly"));
+    loan.term = 30;
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(37.94);
+
+    loan.principle = new GrowableNumber(181500, new HousingNumber(.03, "yearly"));
+    loan.term = 30;
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(765, 0);
+  })
+});
+
+// TODO: add rental insurance calculation
+
+function expectWithinRange(value: number, expectedValue: number, expectedInterval: number) {
+  expect(value).toBeLessThanOrEqual(expectedValue + expectedInterval);
+  expect(value).toBeGreaterThanOrEqual(expectedValue - expectedInterval);
+}
+
+describe('round', function () {
+  it('Happy Path', function () {
+    expect(round(1)).toEqual(1);
+    expect(round(0)).toEqual(0);
+    expect(round(0.17645)).toEqual(0.18);
+    expect(round(0.1742)).toEqual(0.17);
+    expect(round(13942.53226)).toEqual(13942.53);
+    expect(round(-13942.53226)).toEqual(-13942.53);
+  })
+});
+
+describe('loanPrinciple', function () {
+  it('Simple Happy Path', function () {
+    const loan = new Loan();
+    loan.term = 3;
+    loan.principle = new GrowableNumber(9000, new HousingNumber(.03, "yearly"));
+    expect(loanPrinciple(loan, 30)).toBeCloseTo(0, 0);
+    expect(loanPrinciple(loan, 1)).toBeCloseTo(6089, 0);
+    expect(loanPrinciple(loan, 2)).toBeCloseTo(3090, 0);
+    expect(loanPrinciple(loan, 3)).toBeCloseTo(0, 0);
+  })
+
+  it('Happy Path', function () {
+    const loan = new Loan();
+    loan.term = 30;
+    loan.principle = new GrowableNumber(181500, new HousingNumber(.03, "yearly"));
+    // We expect the principle to be within +/- 1 of the expected principle
+    //   This is due to small variations in the way we and calulators like
+    //   Zillow do rounding
+    expectWithinRange(loanPrinciple(loan, 29), 9036, 1);
+    expectWithinRange(loanPrinciple(loan, 1), 177711, 1);
+    expectWithinRange(loanPrinciple(loan, 30), 0, 1);
+  })
+});
+
+describe('loanIntrest', function () {
+  /* 
+   * Following tests use rounding with 2 decimal points as this seems to be the common approach
+   * from most websites. But, since this is not accurate, we use no rounding in our calculation
+  it('Happy Path 1', function () {
+    const loan = new Loan();
+    loan.principle.amount = 300000;
+    loan.principle.rate.update("yearly", (_) => .03);
+
+    const interest = loanIntrest(loan);
+    expect(interest.interestPaid).toEqual(750);
+    expect(interest.newPrinciple).toEqual(299485.19);
   });
+
+  it('Happy Path 2', function () {
+    const loan = new Loan();
+    loan.principle.amount = 167470;
+    loan.principle.rate.update("yearly", (_) => .03);
+
+    const interest = loanIntrest(loan);
+    expect(interest.interestPaid).toEqual(418.68);
+    expect(interest.newPrinciple).toEqual(166642);
+  });
+
+  it('Happy Path 1', function () {
+    const loan = new Loan();
+    loan.principle.amount = 300000;
+    loan.principle.rate.update("yearly", (_) => .03);
+
+    const interest = loanIntrest(loan);
+    expect(interest.interestPaid).toEqual(750);
+    expect(interest.newPrinciple).toEqual(299485.19);
+  });
+  */
 });
 
 // TODO: write taxCredits tests
 describe('taxCredits', function () {
   it('Happy Path', function () {
+  });
+});
+
+describe('sellInvestment', function () {
+  it('Happy Path 1', function () {
+    const state = new State();
+    const investment = state.data.investment;
+    const taxes = state.data.taxes;
+
+    investment.totalGain = 10000;
+    taxes.capitalGainsRate = 0.24;
+
+    const expectedState = state.clone();
+    expectedState.netWorth = 7600;
+
+    const newState = log(sellInvestment())(state, 1);
+    expect(newState).toEqual(expectedState);
   });
 });
