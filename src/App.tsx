@@ -104,7 +104,7 @@ function App() {
   return (
     <div>
       <div style={{height: '40vh', width: '100%'}}>
-        <NetWorthTrendline data={selectedData}></NetWorthTrendline>
+        <NetWorthTrendline data={selectedData} years={50}></NetWorthTrendline>
       </div>
       <TableContainer component={Paper}>
         <Table>

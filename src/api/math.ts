@@ -6,7 +6,7 @@ export type TaxFilingStatus = 'individual' | 'joint'
 
 export class Investment {
   principle = new GrowableNumber(100000, new HousingNumber(0.06, "yearly"));
-  contribution = new HousingNumber(1000, "monthly");
+  contribution = new HousingNumber(18000, "monthly");
   totalGain = 0;
 
   clone() {
@@ -208,8 +208,8 @@ export function* calculateDefault(initialData: Data, months: number): Generator<
   initialState.data = initialData.clone();
 
   yield* calculate(initialState, months, {
-    ongoing: calculateMonth(),
-    post: postCalculateMonth(initialState),
+    ongoing: log(calculateMonth(), 'ongoing'),
+    post: log(postCalculateMonth(initialState), 'post'),
   });
 }
 
@@ -224,10 +224,9 @@ export function* calculate(state: State, months: number, callbacks: Callbacks): 
     closingCosts = housing.house.housePrice * housing.house.buyClosingCosts;
   }
   investment.principle.amount -= (housing.downPayment + closingCosts);
-
+  assert(investment.principle.amount > 0, "Initial investment principle is not enough to cover up down payment");
 
   for (let month = 1; month <= months; month++) {
-    console.log("Calculating month ", month);
     state = callbacks.ongoing(state, month);
     yield callbacks.post(state, month);
   }
@@ -266,6 +265,7 @@ export function housingExpenses(): CalculateFn {
       rentIncome
       - housing.insurance.monthly()
       - housing.utilityCost.monthly();
+    assert(investment.principle.amount > 0, "Not enough money to cover up housing expenses");
 
     if (month % 12 === 0) {
       const increaseByInflation = increaseByRate(state.data.inflation.yearly());
@@ -300,6 +300,7 @@ function houseExpenses(house: House): CalculateFn {
 
     const newState = state.clone();
     newState.data.investment.principle.amount += expense;
+    assert(newState.data.investment.principle.amount > 0, "Not enough money to cover up house expenses");
 
     const newHouse = newState.data.housing.house;
     newHouse.housePrice = principleAfterInterest(newHouse.housePrice, newHouse.growthRate.monthly());

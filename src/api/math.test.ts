@@ -28,7 +28,7 @@ function offsetMonth(fn: CalculateFn, months: number): CalculateFn {
 }
 
 describe('calculate', function () {
-  it.only('Happy Path 1', function () {
+  it('Happy Path 1', function () {
     const state = new State();
     const housing = state.data.housing;
     const house = housing.house;
@@ -39,6 +39,7 @@ describe('calculate', function () {
     house.housePrice = 300000;
     house.growthRate = new HousingNumber(0.05, 'yearly');
     housing.chargeForRoom = new HousingNumber(1200, 'monthly');
+    housing.chargeForRoomIncrease = new HousingNumber(0.02, "yearly");
     housing.extraBedrooms = 0;
     housing.insurance = new HousingNumber(1000, 'monthly');
     housing.utilityCost = new HousingNumber(500, 'monthly');
@@ -72,7 +73,7 @@ describe('calculate', function () {
     const expectedHomeValue = principleAfterInterest(300000, 0.05 / 12) * 0.94 - expectedLoan.newPrinciple;
     // investment - tax
     const expectedInvestment = principleAfterInterest(28000, 0.06 / 12) + 16738 - 6.85;
-    const expectedNetWorth =  expectedInvestment + expectedHomeValue;
+    const expectedNetWorth = expectedInvestment + expectedHomeValue;
 
     expect(newState1.netWorth).toBeCloseTo(expectedNetWorth);
   });
@@ -392,6 +393,11 @@ describe('loanPayment', function () {
     loan.term = 30;
 
     expect(loanPayment(loan).monthly()).toBeCloseTo(765, 0);
+
+    loan.principle = new GrowableNumber(0, new HousingNumber(.03, "yearly"));
+    loan.term = 30;
+
+    expect(loanPayment(loan).monthly()).toBeCloseTo(0, 0);
   })
 });
 
