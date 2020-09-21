@@ -70,9 +70,11 @@ describe('calculate', function () {
     const newState1 = result.value as State;
     const expectedLoan = loanIntrest(house.loan);
     const expectedHomeValue = principleAfterInterest(300000, 0.05 / 12) * 0.94 - expectedLoan.newPrinciple;
-    const expectedNetWorth = principleAfterInterest(28000, 0.06 / 12) + 16738 + expectedHomeValue;
+    // investment - tax
+    const expectedInvestment = principleAfterInterest(28000, 0.06 / 12) + 16738 - 6.85;
+    const expectedNetWorth =  expectedInvestment + expectedHomeValue;
 
-    expect(newState1.netWorth).toEqual(expectedNetWorth);
+    expect(newState1.netWorth).toBeCloseTo(expectedNetWorth);
   });
 });
 
