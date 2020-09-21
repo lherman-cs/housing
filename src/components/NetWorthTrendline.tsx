@@ -1,7 +1,7 @@
 import React from 'react';
 import {ResponsiveLine, Serie} from '@nivo/line';
 import {InputDialogData} from './InputDialog';
-import {calculate, State} from '../api/math';
+import {State, calculateDefault} from '../api/math';
 
 const DEFAULT_YEARS = 30;
 
@@ -12,7 +12,7 @@ export type NetWorthTrendlineProps = {
 
 function transform(data: InputDialogData, years: number): Serie {
   const months = 12 * years;
-  const it = calculate(data, months)
+  const it = calculateDefault(data, months)
   const states: State[] = [];
 
   for (let month = 1; month <= months; month++) {

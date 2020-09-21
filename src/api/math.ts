@@ -104,7 +104,7 @@ export class State {
 
 export type CalculateFn = (state: State, month: number) => State;
 
-export function log(fn: CalculateFn): CalculateFn {
+export function log(fn: CalculateFn, label?: string): CalculateFn {
   const buff: string[] = [];
   function logDiff(oldState: any, newState: any, prefixes: string[]) {
     if (typeof newState !== 'object') {
@@ -123,11 +123,13 @@ export function log(fn: CalculateFn): CalculateFn {
     }
   }
 
+  label = label ? `(${label})` : "";
   return (oldState: State, month: number): State => {
     const newState = fn(oldState, month);
-    buff.push(`Changes in state on month ${month}:`);
+    buff.push(`Changes in state on month ${month} ${label}:`);
     logDiff(oldState, newState, []);
     console.debug(buff.join("\n"));
+    buff.length = 0;
 
     return newState;
   }
@@ -196,20 +198,38 @@ export function postCalculateMonth(initialState: State): CalculateFn {
   return chainCalculations(sellHouse(initialState), sellInvestment());
 }
 
-export function* calculate(data: Data, months: number): Generator<State> {
-  let state = new State();
-  state.data = data.clone();
+export type Callbacks = {
+  ongoing: CalculateFn,
+  post: CalculateFn
+};
 
-  const fn = calculateMonth();
-  const postFn = postCalculateMonth(state);
+export function* calculateDefault(initialData: Data, months: number): Generator<State> {
+  const initialState = new State();
+  initialState.data = initialData.clone();
 
+  yield* calculate(initialState, months, {
+    ongoing: calculateMonth(),
+    post: postCalculateMonth(initialState),
+  });
+}
+
+export function* calculate(state: State, months: number, callbacks: Callbacks): Generator<State> {
+  state = state.clone();
   const loan = state.data.housing.house.loan;
   const housing = state.data.housing;
+  const investment = state.data.investment;
   loan.principle.amount = housing.house.housePrice - housing.downPayment;
+  let closingCosts = 0;
+  if (housing.plan === "house") {
+    closingCosts = housing.house.housePrice * housing.house.buyClosingCosts;
+  }
+  investment.principle.amount -= (housing.downPayment + closingCosts);
+
 
   for (let month = 1; month <= months; month++) {
-    state = fn(state, month);
-    yield postFn(state, month);
+    console.log("Calculating month ", month);
+    state = callbacks.ongoing(state, month);
+    yield callbacks.post(state, month);
   }
 }
 
@@ -276,6 +296,7 @@ function houseExpenses(house: House): CalculateFn {
       - loanPayment(house.loan).monthly()
       - house.repairCost.monthly()
       - house.hoaFee.monthly()
+      - state.data.taxes.property.monthly() * house.housePrice;
 
     const newState = state.clone();
     newState.data.investment.principle.amount += expense;
@@ -314,7 +335,8 @@ export function sellInvestment(): CalculateFn {
     const investment = newState.data.investment;
     const capitalGainsRate = newState.data.taxes.capitalGainsRate;
 
-    newState.netWorth += investment.totalGain * (1 - capitalGainsRate);
+    newState.netWorth += investment.totalGain * (1 - capitalGainsRate)
+      + investment.principle.amount - investment.totalGain;
     return newState;
   }
 }
@@ -382,12 +404,12 @@ export function loanPrinciple(loan: Loan, years: number) {
   const months = years * 12;
   const payment = loanPayment(loan).monthly()
   for (let month = 0; month < months; month++) {
-    const interest = round(loanAmount * loan.principle.rate.monthly())
+    const interest = loanAmount * loan.principle.rate.monthly()
     const principle = payment - interest
     loanAmount -= principle;
     if (loanAmount < 0) {loanAmount = 0; month = months;}
   }
-  return Math.round(loanAmount);
+  return loanAmount;
 }
 
 /*
@@ -397,9 +419,9 @@ export function loanIntrest(loan: Loan) {
   const principle = loan.principle.amount;
 
   const payment = loanPayment(loan).monthly();
-  const interestPaid = round(principle * loan.principle.rate.monthly());
+  const interestPaid = principle * loan.principle.rate.monthly();
   const principlePaid = payment - interestPaid;
-  let newPrinciple = principle - round(principlePaid);
+  let newPrinciple = principle - principlePaid;
   if (principle < principlePaid) {newPrinciple = 0;}
 
   return {
@@ -449,11 +471,7 @@ export function taxCredits(): CalculateFn {
     const newState = state.clone();
 
     // Update principle owed on loan
-    newState.data.housing.house.loan.principle.update(
-      newPrinciple,
-      state.data.housing.house.loan.principle.rate.to("monthly"),
-      "monthly"
-    );
+    newState.data.housing.house.loan.principle.amount = newPrinciple;
 
     if (month % 12 === 0) {
       // Morgage Interest Deduction

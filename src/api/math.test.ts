@@ -12,9 +12,69 @@ import {
   increaseByRate,
   sellHouse,
   sellInvestment,
+  CalculateFn,
+  calculateMonth,
+  postCalculateMonth,
+  calculate,
+  Callbacks,
+  loanIntrest
 } from "./math";
 import {HousingNumber, GrowableNumber} from "./number";
 
+function offsetMonth(fn: CalculateFn, months: number): CalculateFn {
+  return (state: State, month: number): State => {
+    return fn(state, month + months);
+  }
+}
+
+describe('calculate', function () {
+  it.only('Happy Path 1', function () {
+    const state = new State();
+    const housing = state.data.housing;
+    const house = housing.house;
+    const investment = state.data.investment;
+    const taxes = state.data.taxes;
+    state.data.inflation.update("yearly", () => 0.02);
+
+    house.housePrice = 300000;
+    house.growthRate = new HousingNumber(0.05, 'yearly');
+    housing.chargeForRoom = new HousingNumber(1200, 'monthly');
+    housing.extraBedrooms = 0;
+    housing.insurance = new HousingNumber(1000, 'monthly');
+    housing.utilityCost = new HousingNumber(500, 'monthly');
+    housing.downPayment = 0.2 * house.housePrice;
+    house.repairCost = new HousingNumber(200, 'monthly');
+    house.hoaFee = new HousingNumber(300, 'monthly');
+    house.loan.term = 30;
+    house.loan.principle.amount = 240000;
+    house.loan.principle.rate.update("yearly", () => 0.03);
+    house.buyClosingCosts = 0.04;
+    house.sellClosingCosts = 0.06;
+
+    investment.principle = new GrowableNumber(100000, new HousingNumber(0.06, "yearly"));
+    investment.contribution.update("monthly", () => 20000);
+
+    taxes.filingStatus = "individual";
+    taxes.capitalGainsRate = 0.05
+    taxes.property.update("yearly", () => 0.01);
+
+    const callbacks: Callbacks = {
+      ongoing: offsetMonth(log(calculateMonth(), "ongoing"), 10),
+      post: offsetMonth(log(postCalculateMonth(state), "post"), 10)
+    };
+
+    const it = calculate(state, 2, callbacks);
+
+    let result = it.next();
+    expect(result.done).toEqual(false);
+    const newState1 = result.value as State;
+    const expectedLoan = loanIntrest(house.loan);
+    const expectedHomeValue = principleAfterInterest(300000, 0.05 / 12) * 0.94 - expectedLoan.newPrinciple;
+    const expectedNetWorth = principleAfterInterest(28000, 0.06 / 12) + 16738 + expectedHomeValue;
+
+    expect(newState1.netWorth).toEqual(expectedNetWorth);
+  });
+});
 
 describe('exponentialSum', function () {
   it('Happy Path', function () {
