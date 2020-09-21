@@ -60,8 +60,8 @@ describe('calculate', function () {
     taxes.property.update("yearly", () => 0.01);
 
     const callbacks: Callbacks = {
-      ongoing: offsetMonth(log(calculateMonth(), "ongoing"), 10),
-      post: offsetMonth(log(postCalculateMonth(state), "post"), 10)
+      ongoing: (initialState: State) => offsetMonth(calculateMonth(initialState), 10),
+      post: (initialState: State) => offsetMonth(postCalculateMonth(initialState), 10)
     };
 
     const it = calculate(state, 2, callbacks);
@@ -69,7 +69,7 @@ describe('calculate', function () {
     let result = it.next();
     expect(result.done).toEqual(false);
     const newState1 = result.value as State;
-    const expectedLoan = loanIntrest(house.loan);
+    const expectedLoan = loanIntrest(house.loan, loanPayment(house.loan));
     const expectedHomeValue = principleAfterInterest(300000, 0.05 / 12) * 0.94 - expectedLoan.newPrinciple;
     // investment - tax
     const expectedInvestment = principleAfterInterest(28000, 0.06 / 12) + 16738 - 6.85;
@@ -447,12 +447,14 @@ describe('loanIntrest', function () {
   /* 
    * Following tests use rounding with 2 decimal points as this seems to be the common approach
    * from most websites. But, since this is not accurate, we use no rounding in our calculation
+   */
   it('Happy Path 1', function () {
     const loan = new Loan();
     loan.principle.amount = 300000;
     loan.principle.rate.update("yearly", (_) => .03);
+    const loanPaymentAmount = loanPayment(loan);
 
-    const interest = loanIntrest(loan);
+    const interest = loanIntrest(loan, loanPaymentAmount);
     expect(interest.interestPaid).toEqual(750);
     expect(interest.newPrinciple).toEqual(299485.19);
   });
@@ -461,22 +463,27 @@ describe('loanIntrest', function () {
     const loan = new Loan();
     loan.principle.amount = 167470;
     loan.principle.rate.update("yearly", (_) => .03);
+    const loanPaymentAmount = loanPayment(loan);
 
-    const interest = loanIntrest(loan);
+    const interest = loanIntrest(loan, loanPaymentAmount);
     expect(interest.interestPaid).toEqual(418.68);
     expect(interest.newPrinciple).toEqual(166642);
   });
 
-  it('Happy Path 1', function () {
+  it('should go to 0 after 30 years', function () {
     const loan = new Loan();
+    loan.term = 30;
     loan.principle.amount = 300000;
     loan.principle.rate.update("yearly", (_) => .03);
+    const loanPaymentAmount = loanPayment(loan);
 
-    const interest = loanIntrest(loan);
-    expect(interest.interestPaid).toEqual(750);
-    expect(interest.newPrinciple).toEqual(299485.19);
+    for (let month = 1; month <= loan.term * 12; month++) {
+      const interest = loanIntrest(loan, loanPaymentAmount);
+      loan.principle.amount = interest.newPrinciple;
+    }
+
+    expect(loan.principle.amount).toEqual(0);
   });
-  */
 });
 
 // TODO: write taxCredits tests

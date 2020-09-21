@@ -186,11 +186,11 @@ function chainCalculations(...fns: CalculateFn[]): CalculateFn {
   }
 }
 
-export function calculateMonth(): CalculateFn {
+export function calculateMonth(initialState: State): CalculateFn {
   return chainCalculations(
     reccuringInvestment(),
     housingExpenses(),
-    taxCredits(),
+    taxCredits(initialState),
   )
 }
 
@@ -199,8 +199,8 @@ export function postCalculateMonth(initialState: State): CalculateFn {
 }
 
 export type Callbacks = {
-  ongoing: CalculateFn,
-  post: CalculateFn
+  ongoing: (_: State) => CalculateFn,
+  post: (_: State) => CalculateFn
 };
 
 export function* calculateDefault(initialData: Data, months: number): Generator<State> {
@@ -208,8 +208,8 @@ export function* calculateDefault(initialData: Data, months: number): Generator<
   initialState.data = initialData.clone();
 
   yield* calculate(initialState, months, {
-    ongoing: log(calculateMonth(), 'ongoing'),
-    post: log(postCalculateMonth(initialState), 'post'),
+    ongoing: calculateMonth,
+    post: postCalculateMonth
   });
 }
 
@@ -226,9 +226,12 @@ export function* calculate(state: State, months: number, callbacks: Callbacks): 
   investment.principle.amount -= (housing.downPayment + closingCosts);
   assert(investment.principle.amount > 0, "Initial investment principle is not enough to cover up down payment");
 
+  const ongoingFn = log(callbacks.ongoing(state), "ongoing");
+  const postFn = log(callbacks.post(state), "post");
+
   for (let month = 1; month <= months; month++) {
-    state = callbacks.ongoing(state, month);
-    yield callbacks.post(state, month);
+    state = ongoingFn(state, month);
+    yield postFn(state, month);
   }
 }
 
@@ -416,18 +419,16 @@ export function loanPrinciple(loan: Loan, years: number) {
 /*
    loanInterest computes the amount of interest paid in this month
 */
-export function loanIntrest(loan: Loan) {
-  const principle = loan.principle.amount;
-
-  const payment = loanPayment(loan).monthly();
-  const interestPaid = principle * loan.principle.rate.monthly();
-  const principlePaid = payment - interestPaid;
-  let newPrinciple = principle - principlePaid;
-  if (principle < principlePaid) {newPrinciple = 0;}
+export function loanIntrest(loan: Loan, payment: HousingNumber) {
+  let loanAmount = loan.principle.amount;
+  const interest = loanAmount * loan.principle.rate.monthly();
+  const principle = payment.monthly() - interest;
+  loanAmount -= principle;
+  if (loanAmount < 0) {loanAmount = 0;}
 
   return {
-    interestPaid,
-    newPrinciple
+    interestPaid: interest,
+    newPrinciple: loanAmount
   };
 }
 
@@ -452,9 +453,10 @@ export function loanIntrest(loan: Loan) {
        when single and first 500k of profit made from sale of home for
        joint (married) filers, no capital gains tax is applied)
 */
-export function taxCredits(): CalculateFn {
+export function taxCredits(initialState: State): CalculateFn {
   // Store how much interest has been paid this year in local state
   let interest = 0;
+  const loanPaymentAmount = loanPayment(initialState.data.housing.house.loan);
 
   return (state: State, month: number): State => {
     // Tax credits do not apply to renters
@@ -464,7 +466,7 @@ export function taxCredits(): CalculateFn {
 
     const taxes = state.data.taxes;
     const {interestPaid, newPrinciple} =
-      loanIntrest(state.data.housing.house.loan)
+      loanIntrest(state.data.housing.house.loan, loanPaymentAmount);
 
     // Update interest paid this year
     interest += interestPaid;
@@ -472,6 +474,7 @@ export function taxCredits(): CalculateFn {
     const newState = state.clone();
 
     // Update principle owed on loan
+    // assert(newPrinciple < newState.data.housing.house.loan.principle.amount, "new principle must be lower than before");
     newState.data.housing.house.loan.principle.amount = newPrinciple;
 
     if (month % 12 === 0) {
